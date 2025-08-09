@@ -1,23 +1,18 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import * as THREE from 'three';
+import { addBone, animate } from './model/gameModel.tsx';
+
 import './index.css'
 import App from './App.tsx'
+
+
+addBone({position: {x: 0, y: 0, z: 1}})
+setInterval(() => {
+  animate()
+}, 0.01)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
   </StrictMode>,
 )
-
-/*
-
-camera.position.z = 5;
-
-function animate() {
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-  renderer.render( scene, camera );
-}
-renderer.setAnimationLoop( animate );
-*/

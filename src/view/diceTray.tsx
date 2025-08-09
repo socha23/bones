@@ -1,6 +1,7 @@
 import React, { MouseEvent, useState, useRef, useEffect } from "react";
 import * as THREE from 'three';
-
+import { getAllBones, Bone } from "../model/gameModel";
+import { TRAY_HEIGHT, TRAY_WIDTH } from "../model/physConsts";
 
 const DICE_COLOR = 0x202020
 
@@ -37,9 +38,8 @@ spotLight.shadowDarkness = 1.1;
 spotLight.shadowMapWidth = 1024;
 spotLight.shadowMapHeight = 1024;
 
-
 const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(10, 10),
+    new THREE.PlaneGeometry(TRAY_WIDTH, TRAY_HEIGHT),
     new THREE.MeshPhongMaterial({ 
         color: 0xffffff,
     })
@@ -49,25 +49,45 @@ scene.add(plane)
 
 
 
-const geometry = new THREE.BoxGeometry( 1, 1, 1 )
-const material = new THREE.MeshPhongMaterial({ 
-    color: DICE_COLOR,
-    shininess: 40,
-    specular: 0x172022,
-    shading: THREE.FlatShading,
-} )
-const cube = new THREE.Mesh( geometry, material );
-cube.position.set(0, 0, 1)
-cube.castShadow = true
-scene.add( cube);
 
+let boneMeshes = new Map<string, THREE.Mesh>()
 
-function animate() {
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-  renderer.render(scene, camera );
+function createMeshForBone(b: Bone): THREE.Mesh {
+    const geometry = new THREE.BoxGeometry(b.size, b.size, b.size)
+    const material = new THREE.MeshPhongMaterial({ 
+        color: DICE_COLOR,
+        shininess: 40,
+        specular: 0x172022,
+        shading: THREE.FlatShading,
+    })
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.castShadow = true
+    scene.add(mesh)
+    return mesh
 }
-renderer.setAnimationLoop( animate );
+
+function updateBoneMesh(mesh: THREE.Mesh, bone: Bone) {
+    mesh.position.set(bone.position.x, bone.position.y, bone.position.z)
+    mesh.rotation.set(bone.rotation.x, bone.position.y, bone.position.z)
+}
+
+function updateScene() {
+    const newBoneMeshes = new Map<string, THREE.Mesh>()
+    getAllBones().forEach(bone => {
+        if (boneMeshes.has(bone.id)) {
+            newBoneMeshes.set(bone.id, boneMeshes.get(bone.id))
+        } else {
+            newBoneMeshes.set(bone.id, createMeshForBone(bone))
+        }
+        updateBoneMesh(newBoneMeshes.get(bone.id), bone)
+    })
+    boneMeshes = newBoneMeshes
+}
+
+renderer.setAnimationLoop(() => {
+    updateScene()
+    renderer.render(scene, camera)
+})
 
 function resizeRenderer(width: number, height: number) {
     renderer.setSize(width, height)
@@ -82,7 +102,7 @@ function onRendererClick(e: MouseEvent<HTMLDivElement>) {
        y: ((e.clientY - boundingRect.y) / boundingRect.height) * 2 - 1,
     }
     raycaster.setFromCamera(pickPosition, camera)
-    const intersectedObjects = raycaster.intersectObjects(scene.children)
+    const intersectedObjects = raycaster.intersectObjects(Array.from(boneMeshes.values()))
     if (intersectedObjects.length) {
       const pickedObject = intersectedObjects[0].object
       window.alert("CLICK")
