@@ -1,6 +1,8 @@
-import React, { MouseEvent, useState, useRef, useEffect } from "react";
+import React, { type MouseEvent, useState, useRef, useEffect } from "react";
 import * as THREE from 'three';
 import { getAllBones, Bone, onTrayResized, traySize } from "../model/gameModel";
+import { swordTexture } from "./textures";
+import { RoundedBoxGeometry } from "./roundedBoxGeometry";
 
 const SIZE_TO_PX_SCALE = 38.5 // experimentaly set to camera height
 
@@ -28,20 +30,12 @@ scene.add(new THREE.AmbientLight(
 ));
 
 
-const spotLight = new THREE.SpotLight(0xffffff, /*intensity=*/ 5000.0);
+const spotLight = new THREE.SpotLight(0xffffff, /*intensity=*/ 3000.0);
 scene.add(spotLight)
-spotLight.position.set(5, 5, 20)
 spotLight.target.position.set(0, 0, 0)
 //spotLight.penumbra = 0.5
-spotLight.distance = 50;
+spotLight.distance = CAMERA_HEIGHT * 2;
 spotLight.castShadow = true;
-//spotLight.shadowCameraNear = 0.001;
-//spotLight.shadowCameraFar = 100;
-//spotLight.shadowCameraFov = 75;
-//spotLight.shadowBias = 100;
-//spotLight.shadowDarkness = 1.1;
-//spotLight.shadowMapWidth = 1024;
-//spotLight.shadowMapHeight = 1024;
 
 const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(traySize().width, traySize().height),
@@ -54,12 +48,12 @@ scene.add(plane)
 const boneMeshes = new Map<string, THREE.Mesh>()
 
 export function addBoneMesh(b: Bone): THREE.Mesh {
-    const geometry = new THREE.BoxGeometry(b.size, b.size, b.size)
+    const geometry = new RoundedBoxGeometry(b.size, b.size, b.size, 3, b.size / 10)
     const material = new THREE.MeshPhongMaterial({ 
-        color: DICE_COLOR,
+        color: 0x888888, //DICE_COLOR,
         shininess: 200,
         specular: 0x172022,
-        shading: THREE.FlatShading,
+//        map: swordTexture,
     })
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true
@@ -76,7 +70,7 @@ function updateBoneMesh(mesh: THREE.Mesh, bone: Bone) {
 
 function updateScene() {
     getAllBones().forEach(bone => {
-        updateBoneMesh(boneMeshes.get(bone.id), bone)
+        updateBoneMesh(boneMeshes.get(bone.id)!!, bone)
     })
 }
 
@@ -95,6 +89,10 @@ function resizeRenderer(width: number, height: number) {
     renderer.setSize(width, height)
     camera.aspect = width / height
     camera.updateProjectionMatrix()
+
+    console.log(traySize())
+    spotLight.position.set(trayWidth * 0.5, trayHeight * 0.5, CAMERA_HEIGHT * 0.75)
+
 }
 
 function onRendererClick(e: MouseEvent<HTMLDivElement>) {
