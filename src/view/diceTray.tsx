@@ -6,8 +6,8 @@ import { TRAY_HEIGHT, TRAY_WIDTH } from "../model/physConsts";
 const DICE_COLOR = 0x202020
 
 const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100)
-camera.position.set(0, 0, 8)
+const camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 100)
+camera.position.set(0, 0, TRAY_HEIGHT * 3)
 camera.up.set(0, 1, 0); // top-down look  
 camera.lookAt(0, 0, 0);
 
@@ -18,19 +18,18 @@ renderer.setClearColor(0xffffff, 1);
 renderer.setSize(window.innerWidth, window.innerHeight)
 const raycaster = new THREE.Raycaster()
 
-
+    
 scene.add(new THREE.AmbientLight(
     /*color=*/ 0xf0f5fb,
     /*intensity=*/ 1,
 ));
 
 
-const spotLight = new THREE.DirectionalLight(0xffffff, /*intensity=*/ 1.0);
+const spotLight = new THREE.SpotLight(0xffffff, /*intensity=*/ 1500.0);
 scene.add(spotLight)
-scene.add(spotLight.target)
+spotLight.position.set(-TRAY_HEIGHT / 2, TRAY_HEIGHT / 2, TRAY_HEIGHT * 2)
 //spotLight.penumbra = 0.5
-spotLight.position.set(3, 3, 50)
-//spotLight.distance = 500;
+spotLight.distance = TRAY_HEIGHT * 5;
 spotLight.castShadow = true;
 //spotLight.shadowCameraNear = 0.001;
 //spotLight.shadowCameraFar = 100;
