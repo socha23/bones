@@ -1,13 +1,17 @@
 import React, { MouseEvent, useState, useRef, useEffect } from "react";
 import * as THREE from 'three';
-import { getAllBones, Bone } from "../model/gameModel";
-import { TRAY_HEIGHT, TRAY_WIDTH } from "../model/physConsts";
+import { getAllBones, Bone, onTrayResized, traySize } from "../model/gameModel";
+
+const SIZE_TO_PX_SCALE = 38.5 // experimentaly set to camera height
 
 const DICE_COLOR = 0x202020
 
+const FOV = 20
+const CAMERA_HEIGHT = 28.5
+
 const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 100)
-camera.position.set(0, 0, TRAY_HEIGHT * 3)
+const camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, 100)
+camera.position.set(0, 0, CAMERA_HEIGHT)
 camera.up.set(0, 1, 0); // top-down look  
 camera.lookAt(0, 0, 0);
 
@@ -16,7 +20,6 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.setClearColor(0xffffff, 1);
 renderer.setSize(window.innerWidth, window.innerHeight)
-const raycaster = new THREE.Raycaster()
 
     
 scene.add(new THREE.AmbientLight(
@@ -25,11 +28,12 @@ scene.add(new THREE.AmbientLight(
 ));
 
 
-const spotLight = new THREE.SpotLight(0xffffff, /*intensity=*/ 1500.0);
+const spotLight = new THREE.SpotLight(0xffffff, /*intensity=*/ 5000.0);
 scene.add(spotLight)
-spotLight.position.set(-TRAY_HEIGHT / 2, TRAY_HEIGHT / 2, TRAY_HEIGHT * 2)
+spotLight.position.set(5, 5, 20)
+spotLight.target.position.set(0, 0, 0)
 //spotLight.penumbra = 0.5
-spotLight.distance = TRAY_HEIGHT * 5;
+spotLight.distance = 50;
 spotLight.castShadow = true;
 //spotLight.shadowCameraNear = 0.001;
 //spotLight.shadowCameraFar = 100;
@@ -40,17 +44,16 @@ spotLight.castShadow = true;
 //spotLight.shadowMapHeight = 1024;
 
 const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(TRAY_WIDTH, TRAY_HEIGHT),
-    new THREE.MeshPhongMaterial({ 
-        color: 0xff0000,
-    })
+    new THREE.PlaneGeometry(traySize().width, traySize().height),
+    //new THREE.MeshPhongMaterial({color: 0xff0000})
+    new THREE.ShadowMaterial({opacity: 0.1})
 )
 plane.receiveShadow = true
 scene.add(plane)
 
-let boneMeshes = new Map<string, THREE.Mesh>()
+const boneMeshes = new Map<string, THREE.Mesh>()
 
-function createMeshForBone(b: Bone): THREE.Mesh {
+export function addBoneMesh(b: Bone): THREE.Mesh {
     const geometry = new THREE.BoxGeometry(b.size, b.size, b.size)
     const material = new THREE.MeshPhongMaterial({ 
         color: DICE_COLOR,
@@ -61,6 +64,7 @@ function createMeshForBone(b: Bone): THREE.Mesh {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true
     scene.add(mesh)
+    boneMeshes.set(b.id, mesh)
     return mesh
 }
 
@@ -71,21 +75,9 @@ function updateBoneMesh(mesh: THREE.Mesh, bone: Bone) {
 }
 
 function updateScene() {
-    const newBoneMeshes = new Map<string, THREE.Mesh>()
     getAllBones().forEach(bone => {
-        if (boneMeshes.has(bone.id)) {
-            newBoneMeshes.set(bone.id, boneMeshes.get(bone.id))
-        } else {
-            newBoneMeshes.set(bone.id, createMeshForBone(bone))
-        }
-        updateBoneMesh(newBoneMeshes.get(bone.id), bone)
+        updateBoneMesh(boneMeshes.get(bone.id), bone)
     })
-    Array.from(boneMeshes.keys()).forEach(k => {
-        if (!newBoneMeshes.has(k)) {
-            scene.remove(boneMeshes.get(k))
-        }
-    })
-    boneMeshes = newBoneMeshes
 }
 
 renderer.setAnimationLoop(() => {
@@ -94,6 +86,12 @@ renderer.setAnimationLoop(() => {
 })
 
 function resizeRenderer(width: number, height: number) {
+    // trayHeight stays same, trayWidth gets
+    const trayHeight = traySize().height
+    const scale = height / trayHeight
+    let trayWidth = width  / scale
+    onTrayResized(trayWidth, trayHeight)
+    plane.geometry = new THREE.PlaneGeometry(trayWidth, trayHeight)
     renderer.setSize(width, height)
     camera.aspect = width / height
     camera.updateProjectionMatrix()
@@ -103,9 +101,10 @@ function onRendererClick(e: MouseEvent<HTMLDivElement>) {
     const boundingRect = renderer.domElement.getBoundingClientRect()    
     const pickPosition = {
        x: ((e.clientX - boundingRect.x) / boundingRect.width) * 2 - 1,
-       y: ((e.clientY - boundingRect.y) / boundingRect.height) * 2 - 1,
+       // not sure why reversing y is needed here
+       y: -1 * (((e.clientY - boundingRect.y) / boundingRect.height) * 2 - 1),
     }
-    console.log("POSITION", pickPosition)
+    const raycaster = new THREE.Raycaster()
     raycaster.setFromCamera(pickPosition, camera)
     const intersectedObjects = raycaster.intersectObjects(Array.from(boneMeshes.values()))
     if (intersectedObjects.length) {
@@ -141,12 +140,17 @@ export const DiceTray = () => {
         setRendererMounted(true)
     })
 
-    return <div ref={ref} style={{
-        width: "100%",
-        height: "100%",
-        border: "1px solid black",
-    }}
-        onClick={onRendererClick}
-    >
+    return <div style={{
+            width: "100%",
+            height: "100%",
+            border: "1px solid #ddd",
+            borderRadius: 3,
+    }}>
+        <div ref={ref} style={{
+            width: "100%",
+            height: "100%",
+        }}
+            onClick={onRendererClick}
+        />
     </div>
 }

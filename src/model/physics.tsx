@@ -1,6 +1,5 @@
 import * as CANNON from 'cannon-es';
-import { Bone, type Point3d } from './gameModel';
-import { TRAY_WIDTH, TRAY_HEIGHT } from './physConsts';
+import { Bone, traySize, type Point3d } from './gameModel';
 
 const GRAVITY = -9.82
 
@@ -8,7 +7,7 @@ const world = new CANNON.World()
 world.gravity.set(0, 0, GRAVITY)
 world.broadphase = new CANNON.NaiveBroadphase()
 ;(world.solver as CANNON.GSSolver).iterations = 15
-//world.allowSleep = true
+world.allowSleep = true
 
 const boneMaterial = new CANNON.Material('bone')
 const planeMaterial = new CANNON.Material('plane')
@@ -17,7 +16,7 @@ world.addContactMaterial(new CANNON.ContactMaterial(planeMaterial, boneMaterial,
 world.addContactMaterial(new CANNON.ContactMaterial(barrierMaterial, boneMaterial, { friction: 0.0, restitution: 0.5 }))
 world.addContactMaterial(new CANNON.ContactMaterial(boneMaterial, boneMaterial, { friction: 0.0, restitution: 0.5 }))
 
-const planeShape = new CANNON.Box(new CANNON.Vec3(TRAY_WIDTH, TRAY_HEIGHT, 1))
+const planeShape = new CANNON.Box(new CANNON.Vec3(30, 30, 1))
 const planeBody = new CANNON.Body({ mass: 0, shape: planeShape, material: planeMaterial})
 //const planeShape = new CANNON.Plane()
 planeBody.quaternion.setFromEuler(0, 0, 0)
@@ -26,24 +25,29 @@ world.addBody(planeBody)
 
 const barrierLeft = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
 barrierLeft.quaternion.setFromEuler(0, Math.PI / 2, -Math.PI / 2)
-barrierLeft.position.set(-TRAY_WIDTH / 2 * 0.93, 0, 0);
 world.addBody(barrierLeft);
 
 const barrierRight = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
 barrierRight.quaternion.setFromEuler(Math.PI, -Math.PI / 2, -Math.PI / 2)
-barrierRight.position.set(TRAY_WIDTH / 2 * 0.93, 0, 0);
 world.addBody(barrierRight);
 
 const barrierTop = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
 barrierTop.quaternion.setFromEuler(-Math.PI / 2, -Math.PI, Math.PI / 2)
-barrierTop.position.set(0, TRAY_HEIGHT / 2 * 0.93, 0);
 world.addBody(barrierTop);
 
 const barrierBottom = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
 barrierBottom.quaternion.setFromEuler(Math.PI / 2, -Math.PI, Math.PI / 2)
-barrierBottom.position.set(0, -TRAY_HEIGHT / 2 * 0.93, 0);
 world.addBody(barrierBottom);
 
+updateBarrierPositions()
+
+export function updateBarrierPositions() {
+    const tray = traySize()
+    barrierLeft.position.set(-tray.width / 2 * 0.93, 0, 0);
+    barrierRight.position.set(tray.width / 2 * 0.93, 0, 0);
+    barrierTop.position.set(0, tray.height / 2 * 0.93, 0);
+    barrierBottom.position.set(0, -tray.height / 2 * 0.93, 0);
+}
 
 const boneBodies = new Map<string, CANNON.Body>() 
 
