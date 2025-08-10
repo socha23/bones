@@ -7,7 +7,7 @@ import App from './App.tsx'
 
 
 addBone({
-  position: {x: 0, y: 0, z: 0.05},
+  position: {x: 4, y: 4, z: 4},
   rotation: {
     x: Math.random() * 2 * Math.PI,
     y: Math.random() * 2 * Math.PI, 

@@ -1,4 +1,4 @@
-import { addBoneBody, updateWorld, getBoneBodyPosition, getBoneBodyRotation } from "./physics"
+import { addBoneBody, updateWorld, getBoneBodyPosition, getBoneBodyRotation, getBoneBodyRotationQuaternion } from "./physics"
 
 var boneIdx = 0
 
@@ -19,8 +19,8 @@ export class Bone {
     mass: number
 
     constructor(p: BoneParams) {
-        this.size = p.size || 0.02
-        this.mass = 0.005 // 5g
+        this.size = p.size || 1
+        this.mass = 1
     }
 
     get position() {
@@ -30,6 +30,11 @@ export class Bone {
     get rotation() {
         return getBoneBodyRotation(this.id)
     }
+
+    get quaternion() {
+        return getBoneBodyRotationQuaternion(this.id)
+    }
+
 }
 
 const bones: Bone[] = []
@@ -41,7 +46,7 @@ export function addBone(p: BoneParams & {
     const b = new Bone(p)
     bones.push(b)
     addBoneBody(b, 
-        p.position || {x: 0, y: 0, z: 0.3}, 
+        p.position || {x: 0, y: 0, z: 5}, 
         p.rotation || {x: 0, y: 0, z: 0}
     )
 }

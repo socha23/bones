@@ -6,8 +6,8 @@ import { TRAY_HEIGHT, TRAY_WIDTH } from "../model/physConsts";
 const DICE_COLOR = 0x202020
 
 const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.001, 100)
-camera.position.set(0, 0, 0.2)
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100)
+camera.position.set(0, 0, 8)
 camera.up.set(0, 1, 0); // top-down look  
 camera.lookAt(0, 0, 0);
 
@@ -21,14 +21,16 @@ const raycaster = new THREE.Raycaster()
 
 scene.add(new THREE.AmbientLight(
     /*color=*/ 0xf0f5fb,
-    /*intensity=*/ 0.1,
+    /*intensity=*/ 1,
 ));
 
 
-const spotLight = new THREE.PointLight(0xffffff, /*intensity=*/ 1.0);
+const spotLight = new THREE.DirectionalLight(0xffffff, /*intensity=*/ 1.0);
 scene.add(spotLight)
-spotLight.position.set(0.1, 0.1, 0.1)
-spotLight.distance = 3;
+scene.add(spotLight.target)
+//spotLight.penumbra = 0.5
+spotLight.position.set(3, 3, 50)
+//spotLight.distance = 500;
 spotLight.castShadow = true;
 //spotLight.shadowCameraNear = 0.001;
 //spotLight.shadowCameraFar = 100;
@@ -41,7 +43,7 @@ spotLight.castShadow = true;
 const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(TRAY_WIDTH, TRAY_HEIGHT),
     new THREE.MeshPhongMaterial({ 
-        color: 0xffffff,
+        color: 0xff0000,
     })
 )
 plane.receiveShadow = true
@@ -53,7 +55,7 @@ function createMeshForBone(b: Bone): THREE.Mesh {
     const geometry = new THREE.BoxGeometry(b.size, b.size, b.size)
     const material = new THREE.MeshPhongMaterial({ 
         color: DICE_COLOR,
-        shininess: 40,
+        shininess: 200,
         specular: 0x172022,
         shading: THREE.FlatShading,
     })
@@ -65,7 +67,8 @@ function createMeshForBone(b: Bone): THREE.Mesh {
 
 function updateBoneMesh(mesh: THREE.Mesh, bone: Bone) {
     mesh.position.set(bone.position.x, bone.position.y, bone.position.z)
-    mesh.rotation.set(bone.rotation.x, bone.rotation.y, bone.rotation.z)
+    const q = bone.quaternion
+    mesh.quaternion.set(q.x, q.y, q.z, q.w)
 }
 
 function updateScene() {
@@ -103,6 +106,7 @@ function onRendererClick(e: MouseEvent<HTMLDivElement>) {
        x: ((e.clientX - boundingRect.x) / boundingRect.width) * 2 - 1,
        y: ((e.clientY - boundingRect.y) / boundingRect.height) * 2 - 1,
     }
+    console.log("POSITION", pickPosition)
     raycaster.setFromCamera(pickPosition, camera)
     const intersectedObjects = raycaster.intersectObjects(Array.from(boneMeshes.values()))
     if (intersectedObjects.length) {
@@ -141,6 +145,7 @@ export const DiceTray = () => {
     return <div ref={ref} style={{
         width: "100%",
         height: "100%",
+        border: "1px solid black",
     }}
         onClick={onRendererClick}
     >
