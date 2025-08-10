@@ -6,9 +6,9 @@ import { TRAY_HEIGHT, TRAY_WIDTH } from "../model/physConsts";
 const DICE_COLOR = 0x202020
 
 const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10)
-camera.position.set(0, 0, 5)
-camera.up.set(0, 0, 1);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.001, 100)
+camera.position.set(0, 0, 0.2)
+camera.up.set(0, 1, 0); // top-down look  
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({antialias: true})
@@ -21,22 +21,22 @@ const raycaster = new THREE.Raycaster()
 
 scene.add(new THREE.AmbientLight(
     /*color=*/ 0xf0f5fb,
-    /*intensity=*/ 2,
+    /*intensity=*/ 0.1,
 ));
 
 
-const spotLight = new THREE.PointLight(0xffffff, /*intensity=*/ 250.0);
+const spotLight = new THREE.PointLight(0xffffff, /*intensity=*/ 1.0);
 scene.add(spotLight)
-spotLight.position.set(2, 2, 5)
-spotLight.distance = 10000;
+spotLight.position.set(0.1, 0.1, 0.1)
+spotLight.distance = 3;
 spotLight.castShadow = true;
-//spotLight.shadowCameraNear = 0.1;
+//spotLight.shadowCameraNear = 0.001;
 //spotLight.shadowCameraFar = 100;
 //spotLight.shadowCameraFov = 75;
 //spotLight.shadowBias = 100;
-spotLight.shadowDarkness = 1.1;
-spotLight.shadowMapWidth = 1024;
-spotLight.shadowMapHeight = 1024;
+//spotLight.shadowDarkness = 1.1;
+//spotLight.shadowMapWidth = 1024;
+//spotLight.shadowMapHeight = 1024;
 
 const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(TRAY_WIDTH, TRAY_HEIGHT),
@@ -46,9 +46,6 @@ const plane = new THREE.Mesh(
 )
 plane.receiveShadow = true
 scene.add(plane)
-
-
-
 
 let boneMeshes = new Map<string, THREE.Mesh>()
 
@@ -68,7 +65,7 @@ function createMeshForBone(b: Bone): THREE.Mesh {
 
 function updateBoneMesh(mesh: THREE.Mesh, bone: Bone) {
     mesh.position.set(bone.position.x, bone.position.y, bone.position.z)
-    mesh.rotation.set(bone.rotation.x, bone.position.y, bone.position.z)
+    mesh.rotation.set(bone.rotation.x, bone.rotation.y, bone.rotation.z)
 }
 
 function updateScene() {
@@ -80,6 +77,11 @@ function updateScene() {
             newBoneMeshes.set(bone.id, createMeshForBone(bone))
         }
         updateBoneMesh(newBoneMeshes.get(bone.id), bone)
+    })
+    Array.from(boneMeshes.keys()).forEach(k => {
+        if (!newBoneMeshes.has(k)) {
+            scene.remove(boneMeshes.get(k))
+        }
     })
     boneMeshes = newBoneMeshes
 }
