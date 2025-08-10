@@ -1,13 +1,13 @@
 import * as CANNON from 'cannon-es';
-import { Bone, traySize, type Point3d } from './gameModel';
+import { Bone, getAllBones, traySize, type Point3d } from './gameModel';
 
-const GRAVITY = -9.82
+const GRAVITY = -9.82 * 3
 
 const world = new CANNON.World()
 world.gravity.set(0, 0, GRAVITY)
 world.broadphase = new CANNON.NaiveBroadphase()
 ;(world.solver as CANNON.GSSolver).iterations = 15
-world.allowSleep = true
+//world.allowSleep = true
 
 const boneMaterial = new CANNON.Material('bone')
 const planeMaterial = new CANNON.Material('plane')
@@ -63,12 +63,30 @@ export function addBoneBody(b: Bone, position: Point3d, rotation: Point3d) {
     body.position.set(position.x, position.y, position.z)
     body.quaternion.setFromEuler(rotation.x, rotation.y, rotation.z)  
     
-    body.velocity.set(-20, -10, 0)
-    body.angularVelocity.set(Math.random(), Math.random(), Math.random())
-
     world.addBody(body)
     boneBodies.set(b.id, body)
 }
+
+function random(from: number, to: number) {
+    return Math.random() * (to - from) + from
+}
+
+function randomAngle() {
+    return random(0, 2 * Math.PI)
+}
+
+export function rollAllBones() {
+    getAllBones().forEach(b => {roll(b)})    
+}
+
+export function roll(bone: Bone) {
+    const body = boneBodies.get(bone.id)!!
+    body.position.set(traySize().width / 2, 0, 2)
+
+    body.velocity.set(random(-60, -40), random(-40, 40), random(-20, 0))
+    body.quaternion.setFromEuler(randomAngle(), randomAngle(), randomAngle())  
+}
+
 
 export function getBoneBodyPosition(id: string) : Point3d {
     if (!boneBodies.has(id)) {

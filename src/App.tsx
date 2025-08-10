@@ -1,5 +1,5 @@
-import { DiceTray } from './view/DiceTray'
-import { addBone } from './model/gameModel'
+import { DiceTray } from './view/diceTray'
+import { addBone, onRoll } from './model/gameModel'
 import './App.css'
 
 
@@ -11,7 +11,8 @@ const App = () => <>
         width: "100%",
       }}>
         <div style={{display: "flex", flexDirection: "column"}}>
-          <button onClick={e => {addBone({})}}>Roll!</button>
+          <button onClick={e => {addBone({})}}>Add bone</button>
+          <button onClick={e => {onRoll()}}>Roll'em bones!</button>
         </div>
         <DiceTray/>
       </div>

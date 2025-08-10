@@ -1,6 +1,6 @@
-import { addBoneBody, updateWorld, getBoneBodyPosition, getBoneBodyRotation, getBoneBodyRotationQuaternion } from "./physics"
-import { addBoneMesh } from "../view/DiceTray"
-import { updateBarrierPositions } from "./physics"
+import { addBoneBody, updateWorld, getBoneBodyPosition, getBoneBodyRotation, getBoneBodyRotationQuaternion, roll } from "./physics"
+import { addBoneMesh } from "../view/diceTray"
+import { updateBarrierPositions, rollAllBones } from "./physics"
 var boneIdx = 0
 
 export interface Point3d {
@@ -46,11 +46,13 @@ export function addBone(p: BoneParams & {
 }, ) {
     const b = new Bone(p)
     bones.push(b)
+    
     addBoneBody(b, 
         p.position || {x: 0, y: 0, z: 5}, 
-        p.rotation || {x: 0, y: 0, z: 0}
+        p.rotation || {x: 0, y: 0, z: 0},
     )
     addBoneMesh(b)
+    return b
 }
 
 export function getAllBones() {
@@ -77,3 +79,6 @@ export function traySize() {
     }
 }
 
+export function onRoll() {
+    rollAllBones()
+}
