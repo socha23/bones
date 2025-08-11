@@ -10,7 +10,6 @@ export class TurnController {
         this.turn = new Turn(bones)
     }
 
-
     roll() {
         if (this.duringRoll) {
             return
@@ -22,17 +21,13 @@ export class TurnController {
             tray.addBone({bone: b})
         })
         tray.roll(bones, () => {this.onRollComplete()})
-        console.log("Started rolling")
     }
 
     onRollComplete() {
         this.duringRoll = false
-        window.alert("Roll complete")
     }
 
     update() {
         tray.update()
     }
-
 }
-

@@ -2,7 +2,7 @@ import * as CANNON from 'cannon-es';
 import { Bone } from './gameModel';
 import { traySize , Point3d } from '../game/trayController';
 
-const GRAVITY = -9.82 * 4
+const GRAVITY = -9.82 * 5
 
 const world = new CANNON.World()
 world.gravity.set(0, 0, GRAVITY)
