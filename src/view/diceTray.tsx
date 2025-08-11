@@ -1,9 +1,10 @@
-import React, { type MouseEvent, useState, useRef, useEffect } from "react";
+import { type MouseEvent, useState, useRef, useEffect } from "react";
 import * as THREE from 'three';
 import { Bone, Face } from "../model/gameModel";
 import { onTrayResized, traySize } from "../game/trayController";
 import { textureForFaceType } from "./textures";
 import { RoundedBoxGeometry } from "./roundedBoxGeometry";
+import * as controller from "../game/trayController"
 
 const FOV = 20
 const CAMERA_HEIGHT = 28.5
@@ -92,9 +93,9 @@ class BoneMesh {
     }
     
     updateMesh() {
-        const pos = this.bone.position
+        const pos = controller.boneBody(this.bone.id).position 
         this.body.position.set(pos.x, pos.y, pos.z)
-        const q = this.bone.quaternion
+        const q = controller.boneBody(this.bone.id).quaternion
         this.body.quaternion.set(q.x, q.y, q.z, q.w)
     }
 

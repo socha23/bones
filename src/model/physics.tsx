@@ -1,6 +1,6 @@
 import * as CANNON from 'cannon-es';
-import { Bone, getAllBones, type Point3d } from './gameModel';
-import { traySize } from '../game/trayController';
+import { Bone } from './gameModel';
+import { traySize , Point3d } from '../game/trayController';
 
 const GRAVITY = -9.82 * 4
 
@@ -89,20 +89,18 @@ function randomAngle() {
     return random(0, 2 * Math.PI)
 }
 
-export function rollAllBones() {
-    getAllBones().forEach(b => {roll(b)})    
+export function roll(bones: Bone[]) {
+    bones.forEach(b => {
+        const body = boneBodies.get(b.id)!!
+        // set initial roll position
+        body.position.set(traySize().width / 2, 0, 2)
+        // apply initial force
+        body.velocity.set(random(-60, -40), random(-40, 40), random(-20, 0))
+        body.quaternion.setFromEuler(randomAngle(), randomAngle(), randomAngle())  
+    })     
 }
 
-export function roll(bone: Bone) {
-    const body = boneBodies.get(bone.id)!!
-    body.position.set(traySize().width / 2, 0, 2)
-
-    body.velocity.set(random(-60, -40), random(-40, 40), random(-20, 0))
-    body.quaternion.setFromEuler(randomAngle(), randomAngle(), randomAngle())  
-}
-
-
-function boneBody(id: string): CANNON.Body {
+export function boneBody(id: string): CANNON.Body {
     if (!boneBodies.has(id)) {
         throw `No such bone: ${id}`
     }
@@ -128,9 +126,4 @@ export function getBoneBodyRotationQuaternion(id: string) {
 
 export function update() {
     world.fixedStep()
-    
-    //world.step(Math.min(deltaMs, 100))
-//    Array.from(boneBodies.values()).forEach(b => {
-//        console.log("Pos: " + b.position)
-//    })
 }
