@@ -1,13 +1,11 @@
 import * as CANNON from 'cannon-es'
 
-import { Bone, BoneParams } from '../model/gameModel';
+import { Bone } from '../model/gameModel';
 import * as physics from '../model/physics'
 import * as view from '../view/diceTray'
 
-const bones: Bone[] = []
-
-export function roll() {
-    physics.roll(bones)
+export function roll(bones: Bone[], callback: () => void) {
+    physics.roll(bones, callback)
 }
 
 export interface Point3d {
@@ -16,18 +14,17 @@ export interface Point3d {
     z: number,
 }
 
-export function addBone(p: BoneParams & {    
+export function addBone(p: {
+    bone: Bone,    
     position?: Point3d,
     rotation?: Point3d,
 }, ) {
-    const b = new Bone(p)
-    bones.push(b)
     
-    physics.addBoneBody(b, 
-        p.position || {x: 0, y: 0, z: 5}, 
+    physics.addBoneBody(p.bone, 
+        p.position || {x: 100, y: 100, z: 5}, 
         p.rotation || {x: 0, y: 0, z: 0},
     )
-    view.addBoneMesh(b)
+    view.addBoneMesh(p.bone)
 } 
 
 export function update() {
@@ -52,4 +49,9 @@ export function traySize() {
 
 export function boneBody(boneId: string): CANNON.Body  {
         return physics.boneBody(boneId)
+}
+
+export function reset() {
+    physics.clearBoneBodies()
+    view.clearBoneMeshes()
 }

@@ -122,12 +122,17 @@ class BoneMesh {
 
 const boneMeshes = new Map<string, BoneMesh>()
 
-
-
 export function addBoneMesh(b: Bone) {
     const mesh = new BoneMesh(b)
     scene.add(mesh.body)
     boneMeshes.set(b.id, mesh)
+}
+
+export function clearBoneMeshes() {
+    Array.from(boneMeshes.values()).forEach(m => {
+        scene.remove(m.body)
+    })
+    boneMeshes.clear()
 }
 
 function updateScene() {

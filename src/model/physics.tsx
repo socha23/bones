@@ -89,7 +89,12 @@ function randomAngle() {
     return random(0, 2 * Math.PI)
 }
 
-export function roll(bones: Bone[]) {
+let duringRoll = false
+let rollCallback = () => {}
+
+export function roll(bones: Bone[], callback: () => void) {
+    duringRoll = true
+    rollCallback = callback 
     bones.forEach(b => {
         const body = boneBodies.get(b.id)!!
         // set initial roll position
@@ -119,11 +124,36 @@ export function getBoneBodyRotation(id: string) : Point3d {
     return eulerRotation
 }
 
-
 export function getBoneBodyRotationQuaternion(id: string) {
     return boneBody(id).quaternion
 }
 
+function bonesStationary() {
+    function small(n: number) {
+        return Math.abs(n) < 0.001
+    }
+    const stillRolling = Array.from(boneBodies.values()).filter(b => 
+        [
+            b.velocity.x, b.velocity.y, b.velocity.z,
+            b.angularVelocity.x, b.angularVelocity.y, b.angularVelocity.z
+        ].find(v => !small(v))
+    )
+    return stillRolling.length === 0
+}
+
+export function clearBoneBodies() {
+    Array.from(boneBodies.values()).forEach(b => {
+        world.removeBody(b)
+    })
+    boneBodies.clear()
+    duringRoll = false
+}
+
 export function update() {
     world.fixedStep()
+    if (duringRoll && bonesStationary()) {
+        duringRoll = false
+        rollCallback()
+        rollCallback = () => {}
+    }
 }

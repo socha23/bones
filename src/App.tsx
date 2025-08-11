@@ -1,6 +1,7 @@
 import { DiceTray } from './view/diceTray'
 import './App.css'
-import { addBone, roll } from './game/trayController'
+import * as gameController from './game/gameController';
+
 
 const App = () => <>
       BONES
@@ -10,8 +11,7 @@ const App = () => <>
         width: "100%",
       }}>
         <div style={{display: "flex", flexDirection: "column"}}>
-          <button onClick={e => {addBone({})}}>Add bone</button>
-          <button onClick={e => {roll()}}>Roll'em bones!</button>
+          <button onClick={e => {gameController.currentTurnController().roll()}}>Roll'em bones!</button>
         </div>
         <DiceTray/>
       </div>
