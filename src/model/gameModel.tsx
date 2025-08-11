@@ -1,6 +1,6 @@
-import { addBoneBody, updateWorld, getBoneBodyPosition, getBoneBodyRotation, getBoneBodyRotationQuaternion, roll } from "./physics"
+import { addBoneBody, getBoneBodyPosition, getBoneBodyRotation, getBoneBodyRotationQuaternion, roll } from "./physics"
 import { addBoneMesh } from "../view/diceTray"
-import { updateBarrierPositions, rollAllBones } from "./physics"
+import { rollAllBones } from "./physics"
 import { FaceType } from "./faceTypes"
 var boneIdx = 0
 
@@ -80,26 +80,6 @@ export function getAllBones() {
 
 export function getBone(id: string): Bone {
     return bones.find(b => b.id == id)!!
-}
-
-export function update(deltaMs: number) {
-    updateWorld(deltaMs)
-}
-
-var trayWidth = 10
-var trayHeight = 10
-
-export function onTrayResized(width: number, height: number) {
-    trayWidth = width
-    trayHeight = height
-    updateBarrierPositions()
-}
-
-export function traySize() {
-    return {
-        width: trayWidth,
-        height: trayHeight,
-    }
 }
 
 export function onRoll() {

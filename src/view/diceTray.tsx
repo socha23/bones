@@ -1,6 +1,7 @@
 import React, { type MouseEvent, useState, useRef, useEffect } from "react";
 import * as THREE from 'three';
-import { Bone, onTrayResized, traySize, Face } from "../model/gameModel";
+import { Bone, Face } from "../model/gameModel";
+import { onTrayResized, traySize } from "../game/trayController";
 import { textureForFaceType } from "./textures";
 import { RoundedBoxGeometry } from "./roundedBoxGeometry";
 

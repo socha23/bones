@@ -1,5 +1,6 @@
 import * as CANNON from 'cannon-es';
-import { Bone, getAllBones, traySize, type Point3d } from './gameModel';
+import { Bone, getAllBones, type Point3d } from './gameModel';
+import { traySize } from '../game/trayController';
 
 const GRAVITY = -9.82 * 4
 
@@ -125,7 +126,7 @@ export function getBoneBodyRotationQuaternion(id: string) {
     return boneBody(id).quaternion
 }
 
-export function updateWorld(deltaMs: number) {
+export function update() {
     world.fixedStep()
     
     //world.step(Math.min(deltaMs, 100))
