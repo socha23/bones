@@ -1,7 +1,7 @@
 import * as CANNON from 'cannon-es';
 import { Bone, getAllBones, traySize, type Point3d } from './gameModel';
 
-const GRAVITY = -9.82 * 3
+const GRAVITY = -9.82 * 4
 
 const world = new CANNON.World()
 world.gravity.set(0, 0, GRAVITY)
@@ -16,12 +16,18 @@ world.addContactMaterial(new CANNON.ContactMaterial(planeMaterial, boneMaterial,
 world.addContactMaterial(new CANNON.ContactMaterial(barrierMaterial, boneMaterial, { friction: 0.0, restitution: 0.5 }))
 world.addContactMaterial(new CANNON.ContactMaterial(boneMaterial, boneMaterial, { friction: 0.0, restitution: 0.5 }))
 
-const planeShape = new CANNON.Box(new CANNON.Vec3(30, 30, 1))
+//const planeShape = new CANNON.Box(new CANNON.Vec3(30, 30, 1))
+const planeShape = new CANNON.Plane()
 const planeBody = new CANNON.Body({ mass: 0, shape: planeShape, material: planeMaterial})
-//const planeShape = new CANNON.Plane()
 planeBody.quaternion.setFromEuler(0, 0, 0)
-planeBody.position.set(0, 0, -0.5)
+planeBody.position.set(0, 0, 0)
 world.addBody(planeBody)
+
+//const barrierUp = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
+//barrierUp.quaternion.set(0, 0, Math.PI, 1)
+//world.addBody(barrierUp);
+//planeBody.position.set(0, 0, 30)
+
 
 const barrierLeft = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
 barrierLeft.quaternion.setFromEuler(0, Math.PI / 2, -Math.PI / 2)
@@ -57,16 +63,23 @@ export function addBoneBody(b: Bone, position: Point3d, rotation: Point3d) {
         mass: b.mass,
         shape: shape,
         material: boneMaterial,
-        linearDamping: 0.1,
         angularDamping: 0.1,
     })
-    body.position.set(position.x, position.y, position.z)
+
+    body.position.set(position.x, position.y, position.z)    
     body.quaternion.setFromEuler(rotation.x, rotation.y, rotation.z)  
     
     world.addBody(body)
     boneBodies.set(b.id, body)
 }
+/*
+class BoneBody {
+    mainBody: CANNON.Body
+    faceShapes: CANNON.Body[]
 
+    constructor()
+}
+*/
 function random(from: number, to: number) {
     return Math.random() * (to - from) + from
 }
@@ -88,11 +101,16 @@ export function roll(bone: Bone) {
 }
 
 
-export function getBoneBodyPosition(id: string) : Point3d {
+function boneBody(id: string): CANNON.Body {
     if (!boneBodies.has(id)) {
         throw `No such bone: ${id}`
     }
-    const pos = boneBodies.get(id)!!.position
+    return boneBodies.get(id)!!
+
+}
+
+export function getBoneBodyPosition(id: string) : Point3d {
+    const pos = boneBody(id).position
     return {x: pos.x, y: pos.y, z: pos.z } 
 }
 
@@ -104,10 +122,7 @@ export function getBoneBodyRotation(id: string) : Point3d {
 
 
 export function getBoneBodyRotationQuaternion(id: string) {
-    if (!boneBodies.has(id)) {
-        throw `No such bone: ${id}`
-    }
-    return boneBodies.get(id)!!.quaternion
+    return boneBody(id).quaternion
 }
 
 export function updateWorld(deltaMs: number) {
