@@ -99,6 +99,10 @@ class BoneMesh {
         this.body.quaternion.set(q.x, q.y, q.z, q.w)
     }
 
+    updateResult() {
+        this.bone.lastResult = this.getTopFace()
+    }
+
     getTopFace(): Face {
         let topZ = -Infinity
         let topFaceIdx = null
@@ -129,10 +133,14 @@ export function addBoneMesh(b: Bone) {
 }
 
 export function clearBoneMeshes() {
-    Array.from(boneMeshes.values()).forEach(m => {
-        scene.remove(m.body)
+    Array.from(boneMeshes.keys()).forEach(id => {
+        removeBone(id)
     })
-    boneMeshes.clear()
+}
+
+export function removeBone(id: string) {
+    scene.remove(boneMeshes.get(id)!!.body)
+    boneMeshes.delete(id)
 }
 
 function updateScene() {
@@ -168,15 +176,23 @@ function onRendererClick(e: MouseEvent<HTMLDivElement>) {
         y: -1 * (((e.clientY - boundingRect.y) / boundingRect.height) * 2 - 1),
     }
     const raycaster = new THREE.Raycaster()
-    raycaster.setFromCamera(pickPosition, camera)
+    raycaster.setFromCamera(
+        new THREE.Vector2(pickPosition.x, pickPosition.y), 
+        camera)
     // we disable recursive check to not catch faces
     const boneBodies = Array.from(boneMeshes.values()).map(bm => bm.body)
     const intersectedObjects = raycaster.intersectObjects(boneBodies, /*recursive=*/false)
     if (intersectedObjects.length) {
         const pickedObject = intersectedObjects[0].object
         const boneMesh = boneMeshes.get(pickedObject.name)!!
-        console.log(`Clicked on ${boneMesh.getTopFace().type} `)
+        controller.onBoneClicked(boneMesh.bone)
     }
+}
+
+export function updateResults() {
+    Array.from(boneMeshes.values()).forEach(m => {
+        m.updateResult()
+    })
 }
 
 export const DiceTray = () => {

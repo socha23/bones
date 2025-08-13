@@ -3,9 +3,13 @@ import * as CANNON from 'cannon-es'
 import { Bone } from '../model/gameModel';
 import * as physics from '../model/physics'
 import * as view from '../view/diceTray'
+import * as game from './gameController'
 
 export function roll(bones: Bone[], callback: () => void) {
-    physics.roll(bones, callback)
+    physics.roll(bones, () => {
+        view.updateResults()
+        callback()
+    })
 }
 
 export interface Point3d {
@@ -20,7 +24,7 @@ export function addBone(p: {
     rotation?: Point3d,
 }, ) {
     
-    physics.addBoneBody(p.bone, 
+    physics.addBone(p.bone, 
         p.position || {x: 100, y: 100, z: 5}, 
         p.rotation || {x: 0, y: 0, z: 0},
     )
@@ -54,4 +58,29 @@ export function boneBody(boneId: string): CANNON.Body  {
 export function reset() {
     physics.clearBoneBodies()
     view.clearBoneMeshes()
+}
+
+const lastBonePositions = new Map<string, Point3d>()
+const lastBoneRotations = new Map<string, Point3d>()
+
+export function keepBone(b: Bone) {
+    const id = b.id
+    lastBonePositions.set(id, physics.getBoneBodyPosition(id))
+    lastBoneRotations.set(id, physics.getBoneBodyRotation(id))
+    physics.removeBone(id)
+    view.removeBone(id)
+}
+
+export function unkeepBone(b: Bone) {
+    physics.addBone(b, 
+        lastBonePositions.get(b.id)!!,
+        lastBoneRotations.get(b.id)!!
+    )
+    view.addBoneMesh(b)
+    lastBonePositions.delete(b.id)
+    lastBoneRotations.delete(b.id)
+}
+
+export function onBoneClicked(b: Bone) {
+    game.onBoneInTrayClicked(b)
 }

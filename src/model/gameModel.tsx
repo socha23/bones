@@ -20,6 +20,7 @@ export class Bone {
     size: number
     mass: number
     faces: Face[]
+    lastResult: Face = new Face(FaceType.BLANK)
 
     constructor(p: BoneParams) {
         this.size = p.size || 1

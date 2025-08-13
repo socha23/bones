@@ -2,20 +2,28 @@ import { Bone } from '../model/gameModel'
 import { Turn } from '../model/turnModel'
 import * as tray from './trayController'
 
+enum State {
+    BEFORE_FIRST_ROLL,
+    ROLL,
+    BETWEEN_ROLLS,
+
+}
+
 export class TurnController {
-    duringRoll = false
+    state: State = State.BEFORE_FIRST_ROLL
     turn: Turn
+
 
     constructor(bones: Bone[]) {
         this.turn = new Turn(bones)
     }
 
     roll() {
-        if (this.duringRoll) {
+        if (this.state == State.ROLL) {
             return
         }
         tray.reset()
-        this.duringRoll = true
+        this.state = State.ROLL
         const bones = this.turn.availableBones
         bones.forEach(b => {
             tray.addBone({bone: b})
@@ -24,10 +32,33 @@ export class TurnController {
     }
 
     onRollComplete() {
-        this.duringRoll = false
+        this.state = State.BETWEEN_ROLLS
+
     }
 
     update() {
         tray.update()
+    }
+
+    onBoneInTrayClicked(b: Bone) {
+        if (this.state == State.BETWEEN_ROLLS) {
+            this.keepBone(b)
+        }
+    }
+
+    onBoneInKeepClicked(b: Bone) {
+        if (this.state == State.BETWEEN_ROLLS) {
+            this.unkeepBone(b)
+        }
+    }
+
+    keepBone(b: Bone) {
+        tray.keepBone(b)
+        this.turn.keepBone(b)
+    }
+
+    unkeepBone(b: Bone) {
+        tray.unkeepBone(b)
+        this.turn.unkeepBone(b)
     }
 }

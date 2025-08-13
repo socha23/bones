@@ -16,3 +16,7 @@ export function currentTurnController() {
 export function update() {
     turnController.update()
 }
+
+export function onBoneInTrayClicked(b: Bone) {
+    turnController.onBoneInTrayClicked(b)
+}

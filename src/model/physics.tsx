@@ -55,9 +55,19 @@ export function updateBarrierPositions() {
     barrierBottom.position.set(0, -tray.height / 2 * 0.93, 0);
 }
 
-const boneBodies = new Map<string, CANNON.Body>() 
+class BoneAndBody {
+    bone: Bone
+    body: CANNON.Body
 
-export function addBoneBody(b: Bone, position: Point3d, rotation: Point3d) {
+    constructor(bone: Bone, body: CANNON.Body) {
+        this.body = body
+        this.bone = bone
+    }
+}
+
+const boneBodies = new Map<string, BoneAndBody>() 
+
+export function addBone(b: Bone, position: Point3d, rotation: Point3d) {
     const shape = new CANNON.Box(new CANNON.Vec3(b.size / 2, b.size / 2, b.size / 2))
     const body = new CANNON.Body({ 
         mass: b.mass,
@@ -70,16 +80,9 @@ export function addBoneBody(b: Bone, position: Point3d, rotation: Point3d) {
     body.quaternion.setFromEuler(rotation.x, rotation.y, rotation.z)  
     
     world.addBody(body)
-    boneBodies.set(b.id, body)
+    boneBodies.set(b.id, new BoneAndBody(b, body))
 }
-/*
-class BoneBody {
-    mainBody: CANNON.Body
-    faceShapes: CANNON.Body[]
 
-    constructor()
-}
-*/
 function random(from: number, to: number) {
     return Math.random() * (to - from) + from
 }
@@ -95,7 +98,7 @@ export function roll(bones: Bone[], callback: () => void) {
     duringRoll = true
     rollCallback = callback 
     bones.forEach(b => {
-        const body = boneBodies.get(b.id)!!
+        const body = boneBody(b.id)
         // set initial roll position
         body.position.set(traySize().width / 2, 0, 2)
         // apply initial force
@@ -108,8 +111,7 @@ export function boneBody(id: string): CANNON.Body {
     if (!boneBodies.has(id)) {
         throw `No such bone: ${id}`
     }
-    return boneBodies.get(id)!!
-
+    return boneBodies.get(id)!!.body
 }
 
 export function getBoneBodyPosition(id: string) : Point3d {
@@ -133,19 +135,24 @@ function bonesStationary() {
     }
     const stillRolling = Array.from(boneBodies.values()).filter(b => 
         [
-            b.velocity.x, b.velocity.y, b.velocity.z,
-            b.angularVelocity.x, b.angularVelocity.y, b.angularVelocity.z
+            b.body.velocity.x, b.body.velocity.y, b.body.velocity.z,
+            b.body.angularVelocity.x, b.body.angularVelocity.y, b.body.angularVelocity.z
         ].find(v => !small(v))
     )
     return stillRolling.length === 0
 }
 
 export function clearBoneBodies() {
-    Array.from(boneBodies.values()).forEach(b => {
-        world.removeBody(b)
+    Array.from(boneBodies.keys()).forEach(b => {
+        removeBone(b)
     })
-    boneBodies.clear()
     duringRoll = false
+}
+
+export function removeBone(boneId: string) {
+    const b = boneBodies.get(boneId)!!
+    world.removeBody(b.body)
+    boneBodies.delete(boneId)
 }
 
 export function update() {
