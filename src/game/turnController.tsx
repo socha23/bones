@@ -32,6 +32,7 @@ export class TurnController {
     }
 
     onRollComplete() {
+        console.log("COMPLETE")
         this.state = State.BETWEEN_ROLLS
 
     }
@@ -40,14 +41,16 @@ export class TurnController {
         tray.update()
     }
 
-    onBoneInTrayClicked(b: Bone) {
+    onBoneInTrayClick(b: Bone) {
         if (this.state == State.BETWEEN_ROLLS) {
             this.keepBone(b)
         }
     }
 
-    onBoneInKeepClicked(b: Bone) {
+    onBoneInKeptClick(b: Bone) {
+            console.log("ONCL1", this.state)
         if (this.state == State.BETWEEN_ROLLS) {
+            console.log("ONCL2")
             this.unkeepBone(b)
         }
     }
@@ -60,5 +63,9 @@ export class TurnController {
     unkeepBone(b: Bone) {
         tray.unkeepBone(b)
         this.turn.unkeepBone(b)
+    }
+
+    isRollEnabled() {
+        return this.state != State.ROLL
     }
 }

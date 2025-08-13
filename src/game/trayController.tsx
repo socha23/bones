@@ -61,12 +61,12 @@ export function reset() {
 }
 
 const lastBonePositions = new Map<string, Point3d>()
-const lastBoneRotations = new Map<string, Point3d>()
+const lastBoneRotations = new Map<string, CANNON.Quaternion>()
 
 export function keepBone(b: Bone) {
     const id = b.id
     lastBonePositions.set(id, physics.getBoneBodyPosition(id))
-    lastBoneRotations.set(id, physics.getBoneBodyRotation(id))
+    lastBoneRotations.set(id, physics.getBoneBodyRotationQuaternion(id))
     physics.removeBone(id)
     view.removeBone(id)
 }

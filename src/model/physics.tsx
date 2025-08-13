@@ -67,7 +67,7 @@ class BoneAndBody {
 
 const boneBodies = new Map<string, BoneAndBody>() 
 
-export function addBone(b: Bone, position: Point3d, rotation: Point3d) {
+export function addBone(b: Bone, position: Point3d, rotation: CANNON.Quaternion) {
     const shape = new CANNON.Box(new CANNON.Vec3(b.size / 2, b.size / 2, b.size / 2))
     const body = new CANNON.Body({ 
         mass: b.mass,
@@ -77,7 +77,7 @@ export function addBone(b: Bone, position: Point3d, rotation: Point3d) {
     })
 
     body.position.set(position.x, position.y, position.z)    
-    body.quaternion.setFromEuler(rotation.x, rotation.y, rotation.z)  
+    body.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w)  
     
     world.addBody(body)
     boneBodies.set(b.id, new BoneAndBody(b, body))
@@ -117,12 +117,6 @@ export function boneBody(id: string): CANNON.Body {
 export function getBoneBodyPosition(id: string) : Point3d {
     const pos = boneBody(id).position
     return {x: pos.x, y: pos.y, z: pos.z } 
-}
-
-export function getBoneBodyRotation(id: string) : Point3d {
-    const eulerRotation = new CANNON.Vec3()
-    getBoneBodyRotationQuaternion(id).toEuler(eulerRotation)
-    return eulerRotation
 }
 
 export function getBoneBodyRotationQuaternion(id: string) {

@@ -1,23 +1,36 @@
 import { useState, useEffect } from 'react';
 
+import { Bone } from '../model/gameModel';
 import { DiceTray } from './diceTray'
+import { DiceHand } from './diceHand'
 import * as gameController from '../game/gameController';
 
 const UI_REFRESH_S = 0.01
 
 interface UiState {
   rollEnabled: boolean
+    bonesHeld: Bone[],
+    bonesKept: Bone[],
+    onKeptClick: (b: Bone) => void,
 }
 
 function getUiState(): UiState {
+  const turnController = gameController.currentTurnController()
+  const turn = turnController.turn
   return {
-    rollEnabled: !gameController.currentTurnController().duringRoll
+    rollEnabled: turnController.isRollEnabled(),
+    bonesHeld: turn.held,
+    bonesKept: turn.keep,
+    onKeptClick: (b) => {turnController.onBoneInKeptClick(b)},
   }
 }
 
 export const Game = () => {
   const [uiState, setUiState] = useState<UiState>({
-    rollEnabled: false
+    rollEnabled: false,
+    bonesHeld: [],
+    bonesKept: [],
+    onKeptClick: (b) => {}
   })
 
   useEffect(() => {
@@ -40,7 +53,18 @@ export const Game = () => {
             onClick={e => {gameController.currentTurnController().roll()}}
             >Roll'em bones!</button>
         </div>
-        <DiceTray/>
+        <div style={{
+            display: "flex", 
+            flexDirection: "column",
+            width: "100%",
+            }}>
+          <DiceTray/>
+          <DiceHand 
+            bonesHeld={uiState.bonesHeld} 
+            bonesKept={uiState.bonesKept}
+            onKeptClick={uiState.onKeptClick}/>
+
+        </div>
       </div>
     </>
 }
