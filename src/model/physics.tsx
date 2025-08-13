@@ -24,11 +24,10 @@ planeBody.quaternion.setFromEuler(0, 0, 0)
 planeBody.position.set(0, 0, 0)
 world.addBody(planeBody)
 
-//const barrierUp = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
-//barrierUp.quaternion.set(0, 0, Math.PI, 1)
-//world.addBody(barrierUp);
-//planeBody.position.set(0, 0, 30)
-
+const barrierUp = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
+barrierUp.quaternion.setFromEuler(0, Math.PI, 0)
+world.addBody(barrierUp);
+barrierUp.position.set(0, 0, 5)
 
 const barrierLeft = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
 barrierLeft.quaternion.setFromEuler(0, Math.PI / 2, -Math.PI / 2)
@@ -130,7 +129,7 @@ export function getBoneBodyRotationQuaternion(id: string) {
 
 function bonesStationary() {
     function small(n: number) {
-        return Math.abs(n) < 0.001
+        return Math.abs(n) < 0.01
     }
     const stillRolling = Array.from(boneBodies.values()).filter(b => 
         [
