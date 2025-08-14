@@ -49,6 +49,8 @@ world.addBody(barrierBottom);
 
 updateBarrierPositions()
 
+var rollingBones: BoneAndBody[] = []
+
 export function updateBarrierPositions() {
     barrierLeft.position.set(-TRAY_WIDTH_UNITS / 2 * 0.93, 0, 0);
     barrierRight.position.set(TRAY_WIDTH_UNITS / 2 * 0.93, 0, 0);
@@ -60,28 +62,55 @@ class BoneAndBody {
     bone: Bone
     body: CANNON.Body
 
+
     constructor(bone: Bone, body: CANNON.Body) {
         this.body = body
         this.bone = bone
     }
+
+    freeze() {
+        this.setMass(0)
+    }
+
+    unfreeze() {
+        this.setMass(this.bone.mass)
+    }
+
+    setMass(m: number) {
+        const newBody = createBoneBody(this.bone, m)
+        newBody.position = this.body.position
+        newBody.quaternion = this.body.quaternion
+        world.removeBody(this.body)
+        world.addBody(newBody)
+        this.body = newBody
+    }
+}
+
+export interface BoneState {
+    position: CANNON.Vec3,
+    quaternion: CANNON.Quaternion,
 }
 
 const boneBodies = new Map<string, BoneAndBody>() 
 
-export function addBone(b: Bone, position: Point3d, rotation: CANNON.Quaternion) {
+function createBoneBody(b: Bone, mass: number) {
     const shape = new CANNON.Box(new CANNON.Vec3(b.size / 2, b.size / 2, b.size / 2))
-    const body = new CANNON.Body({ 
-        mass: b.mass,
+    return new CANNON.Body({ 
         shape: shape,
         material: boneMaterial,
         angularDamping: 0.1,
+        mass: mass,
     })
+}
 
+
+function addBone(b: Bone, position: Point3d, rotation: CANNON.Quaternion) {
+    const body = createBoneBody(b, 0)
     body.position.set(position.x, position.y, position.z)    
     body.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w)  
-    
     world.addBody(body)
-    boneBodies.set(b.id, new BoneAndBody(b, body))
+    const bb = new BoneAndBody(b, body)
+    boneBodies.set(b.id, bb)
 }
 
 function random(from: number, to: number) {
@@ -97,31 +126,40 @@ let rollCallback = () => {}
 
 export function roll(bones: Bone[], callback: () => void) {
     duringRoll = true
+    rollingBones = []
     rollCallback = callback 
     bones.forEach(b => {
-        const body = boneBody(b.id)
+        const bb = boneBody(b.id)
+        rollingBones.push(bb)
+        bb.unfreeze()
         // set initial roll position
-        body.position.set(TRAY_WIDTH_UNITS / 2, 0, 2)
+        bb.body.position.set(TRAY_WIDTH_UNITS / 2, 0, 2)
         // apply initial force
-        body.velocity.set(random(-60, -40), random(-40, 40), random(-20, 0))
-        body.quaternion.setFromEuler(randomAngle(), randomAngle(), randomAngle())  
+        bb.body.velocity.set(random(-60, -40), random(-40, 40), random(-20, 0))
+        bb.body.quaternion.setFromEuler(randomAngle(), randomAngle(), randomAngle())  
     })     
 }
 
-export function boneBody(id: string): CANNON.Body {
+function boneBody(id: string) {
     if (!boneBodies.has(id)) {
         throw `No such bone: ${id}`
     }
-    return boneBodies.get(id)!!.body
+    return boneBodies.get(id)!!
 }
 
-export function getBoneBodyPosition(id: string) : Point3d {
-    const pos = boneBody(id).position
-    return {x: pos.x, y: pos.y, z: pos.z } 
+
+export function boneState(id: string): BoneState {
+    const body = boneBody(id).body
+    return {
+        position: body.position,
+        quaternion: body.quaternion,
+    }
 }
 
-export function getBoneBodyRotationQuaternion(id: string) {
-    return boneBody(id).quaternion
+export function setBoneState(id: string, state: BoneState) {
+    const body = boneBody(id).body
+    body.position = state.position
+    body.quaternion = state.quaternion
 }
 
 function bonesStationary() {
@@ -137,14 +175,21 @@ function bonesStationary() {
     return stillRolling.length === 0
 }
 
-export function clearBoneBodies() {
+export function resetBones(bones: Bone[]) {
+    clearBoneBodies()
+    bones.forEach((b, idx) => {
+        addBone(b, {x: 100, y: idx * 10, z: b.size / 2}, new CANNON.Quaternion()) // out of board
+    })
+}
+
+function clearBoneBodies() {
     Array.from(boneBodies.keys()).forEach(b => {
         removeBone(b)
     })
     duringRoll = false
 }
 
-export function removeBone(boneId: string) {
+function removeBone(boneId: string) {
     const b = boneBodies.get(boneId)!!
     world.removeBody(b.body)
     boneBodies.delete(boneId)
@@ -154,7 +199,11 @@ export function update() {
     world.fixedStep()
     if (duringRoll && bonesStationary()) {
         duringRoll = false
+        rollingBones.forEach(b => {
+            b.freeze()
+        })
         rollCallback()
         rollCallback = () => {}
     }
 }
+

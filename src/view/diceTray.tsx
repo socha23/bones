@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import { Bone, Face } from "../model/gameModel";
 import { textureForFaceType } from "./textures";
 import { RoundedBoxGeometry } from "./roundedBoxGeometry";
-import * as controller from "../game/trayController"
 import { TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS } from "../game/trayConsts";
+import * as physics from "../model/physics"
 
 const FOV = 20
 const CAMERA_HEIGHT = 23
@@ -99,10 +99,9 @@ class BoneMesh {
     }
     
     updateMesh() {
-        const pos = controller.boneBody(this.bone.id).position 
-        this.body.position.set(pos.x, pos.y, pos.z)
-        const q = controller.boneBody(this.bone.id).quaternion
-        this.body.quaternion.set(q.x, q.y, q.z, q.w)
+        const state = physics.boneState(this.bone.id)
+        this.body.position.set(state.position.x, state.position.y, state.position.z)
+        this.body.quaternion.set(state.quaternion.x, state.quaternion.y, state.quaternion.z, state.quaternion.w)
     }
 
     updateResult() {
@@ -132,21 +131,22 @@ class BoneMesh {
 
 const boneMeshes = new Map<string, BoneMesh>()
 
-export function addBoneMesh(b: Bone) {
+export function resetBones(bones: Bone[]) {
+    clearBoneMeshes()
+    bones.forEach(addBoneMesh)
+}
+
+function addBoneMesh(b: Bone) {
     const mesh = new BoneMesh(b)
     scene.add(mesh.body)
     boneMeshes.set(b.id, mesh)
 }
 
-export function clearBoneMeshes() {
+function clearBoneMeshes() {
     Array.from(boneMeshes.keys()).forEach(id => {
-        removeBone(id)
+        scene.remove(boneMeshes.get(id)!!.body)
+        boneMeshes.delete(id)
     })
-}
-
-export function removeBone(id: string) {
-    scene.remove(boneMeshes.get(id)!!.body)
-    boneMeshes.delete(id)
 }
 
 function updateScene() {
@@ -176,11 +176,16 @@ function onMouseOut() {
     currentMousePosition = undefined
 }
 
+var onClickHandler = (b: Bone) => {}
+
+export function setOnBoneClickHandler(h: (b: Bone) => void) {
+    onClickHandler = h
+}
 
 function onRendererClick() {
     const b = mouseOverBone()
     if (b) {
-        controller.onBoneClicked(b)
+        onClickHandler(b)
     }
 }
 

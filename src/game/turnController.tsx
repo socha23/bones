@@ -16,22 +16,15 @@ export class TurnController {
 
     constructor(bones: Bone[]) {
         this.turn = new Turn(bones)
-
-        // TODO REMOVE
-        bones[0].lastResult = bones[0].faces[0]
-        this.turn.keepBone(bones[0])
+        tray.resetBones(bones)
     }
 
     roll() {
         if (this.state == State.ROLL) {
             return
         }
-        tray.reset()
         this.state = State.ROLL
         const bones = this.turn.availableBones
-        bones.forEach(b => {
-            tray.addBone({bone: b})
-        })
         tray.roll(bones, () => {this.onRollComplete()})
     }
 
