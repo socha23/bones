@@ -1,16 +1,19 @@
 import { type MouseEvent, useState, useRef, useEffect } from "react";
 import * as THREE from 'three';
 import { Bone, Face } from "../model/gameModel";
-import { onTrayResized, traySize } from "../game/trayController";
 import { textureForFaceType } from "./textures";
 import { RoundedBoxGeometry } from "./roundedBoxGeometry";
 import * as controller from "../game/trayController"
+import { TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS } from "../game/trayConsts";
 
 const FOV = 20
-const CAMERA_HEIGHT = 28.5
+const CAMERA_HEIGHT = 23
+
+const RENDERER_WIDTH_PX = 800
+const RENDERER_HEIGHT_PX = RENDERER_WIDTH_PX / TRAY_WIDTH_UNITS * TRAY_HEIGHT_UNITS
 
 const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(FOV, RENDERER_WIDTH_PX / RENDERER_HEIGHT_PX, 0.1, 100)
 camera.position.set(0, 0, CAMERA_HEIGHT)
 camera.up.set(0, 1, 0); // top-down look  
 camera.lookAt(0, 0, 0);
@@ -19,8 +22,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.setClearColor(0xffffff, 1);
-renderer.setSize(window.innerWidth, window.innerHeight)
-
+renderer.setSize(RENDERER_WIDTH_PX, RENDERER_HEIGHT_PX)
 
 scene.add(new THREE.AmbientLight(
     /*color=*/ 0xf0f5fb,
@@ -34,9 +36,13 @@ spotLight.target.position.set(0, 0, 0)
 //spotLight.penumbra = 0.5
 spotLight.distance = CAMERA_HEIGHT * 2;
 spotLight.castShadow = true;
+spotLight.position.set(
+    TRAY_WIDTH_UNITS * 0.5, 
+    TRAY_HEIGHT_UNITS * 0.5,
+     CAMERA_HEIGHT * 0.75)
 
 const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(traySize().width, traySize().height),
+    new THREE.PlaneGeometry(TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS),
     //new THREE.MeshPhongMaterial({color: 0xff0000})
     new THREE.ShadowMaterial({ opacity: 0.1 })
 )
@@ -154,26 +160,39 @@ renderer.setAnimationLoop(() => {
     renderer.render(scene, camera)
 })
 
-function resizeRenderer(width: number, height: number) {
-    // trayHeight stays same, trayWidth gets
-    const trayHeight = traySize().height
-    const scale = height / trayHeight
-    let trayWidth = width / scale
-    onTrayResized(trayWidth, trayHeight)
-    plane.geometry = new THREE.PlaneGeometry(trayWidth, trayHeight)
-    renderer.setSize(width, height)
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
-    spotLight.position.set(trayWidth * 0.5, trayHeight * 0.5, CAMERA_HEIGHT * 0.75)
-
+interface Point2d {
+    x: number,
+    y: number,
 }
 
-function onRendererClick(e: MouseEvent<HTMLDivElement>) {
+let currentMousePosition: Point2d | undefined 
+
+function onMouseMove(e: MouseEvent<HTMLDivElement>) {
+    const boundingRect = renderer.domElement.getBoundingClientRect()
+    currentMousePosition = {x: e.clientX - boundingRect.x, y: e.clientY - boundingRect.y}
+}
+
+function onMouseOut() {
+    currentMousePosition = undefined
+}
+
+
+function onRendererClick() {
+    const b = mouseOverBone()
+    if (b) {
+        controller.onBoneClicked(b)
+    }
+}
+
+export function mouseOverBone() : Bone | undefined {
+    if (!currentMousePosition) {
+        return undefined
+    }
     const boundingRect = renderer.domElement.getBoundingClientRect()
     const pickPosition = {
-        x: ((e.clientX - boundingRect.x) / boundingRect.width) * 2 - 1,
+        x: (currentMousePosition!.x / boundingRect.width) * 2 - 1,
         // not sure why reversing y is needed here
-        y: -1 * (((e.clientY - boundingRect.y) / boundingRect.height) * 2 - 1),
+        y: -1 * ((currentMousePosition!.y / boundingRect.height) * 2 - 1),
     }
     const raycaster = new THREE.Raycaster()
     raycaster.setFromCamera(
@@ -185,7 +204,9 @@ function onRendererClick(e: MouseEvent<HTMLDivElement>) {
     if (intersectedObjects.length) {
         const pickedObject = intersectedObjects[0].object
         const boneMesh = boneMeshes.get(pickedObject.name)!!
-        controller.onBoneClicked(boneMesh.bone)
+        return boneMesh.bone
+    } else {
+        return undefined
     }
 }
 
@@ -198,40 +219,33 @@ export function updateResults() {
 export const DiceTray = () => {
     const ref = useRef<HTMLDivElement>(null)
 
-    const [size, setSize] = useState({ width: 0, height: 0 })
+    const [cursorOverBone, setCursorOverBone] = useState(false)
 
     const [rendererMounted, setRendererMounted] = useState(false)
-
-    function onSizeChanged() {
-        if (ref.current) {
-            const container = ref.current.getBoundingClientRect();
-            if (container.height != size.height || container.width != size.width) {
-                resizeRenderer(container.width, container.height)
-                setSize({ width: container.width, height: container.height })
-            }
-        }
-    }
 
     useEffect(() => {
         if (rendererMounted) {
             return
         }
-        onSizeChanged()
         ref.current?.appendChild(renderer.domElement)
-        window.addEventListener("resize", onSizeChanged);
         setRendererMounted(true)
+        setInterval(() => {
+            setCursorOverBone(mouseOverBone() != undefined)
+        }, 0.02)
     })
 
     return <div style={{
-        width: "100%",
-        height: "100%",
         border: "1px solid #ddd",
+        width: RENDERER_WIDTH_PX + 2,
         borderRadius: 3,
+        cursor: cursorOverBone ? "pointer" : "default",
     }}>
         <div ref={ref} style={{
-            width: "100%",
-            height: "100%",
+            width: RENDERER_WIDTH_PX,
+            height: RENDERER_HEIGHT_PX,
         }}
+            onMouseMove={onMouseMove}
+            onMouseOut={onMouseOut}
             onClick={onRendererClick}
         />
     </div>

@@ -1,8 +1,10 @@
 import * as CANNON from 'cannon-es';
 import { Bone } from './gameModel';
-import { traySize , Point3d } from '../game/trayController';
+import {  Point3d, TRAY_HEIGHT_UNITS, TRAY_WIDTH_UNITS } from '../game/trayConsts';
 
 const GRAVITY = -9.82 * 5
+
+
 
 const world = new CANNON.World()
 world.gravity.set(0, 0, GRAVITY)
@@ -48,11 +50,10 @@ world.addBody(barrierBottom);
 updateBarrierPositions()
 
 export function updateBarrierPositions() {
-    const tray = traySize()
-    barrierLeft.position.set(-tray.width / 2 * 0.93, 0, 0);
-    barrierRight.position.set(tray.width / 2 * 0.93, 0, 0);
-    barrierTop.position.set(0, tray.height / 2 * 0.93, 0);
-    barrierBottom.position.set(0, -tray.height / 2 * 0.93, 0);
+    barrierLeft.position.set(-TRAY_WIDTH_UNITS / 2 * 0.93, 0, 0);
+    barrierRight.position.set(TRAY_WIDTH_UNITS / 2 * 0.93, 0, 0);
+    barrierTop.position.set(0, TRAY_HEIGHT_UNITS / 2 * 0.93, 0);
+    barrierBottom.position.set(0, -TRAY_HEIGHT_UNITS / 2 * 0.93, 0);
 }
 
 class BoneAndBody {
@@ -100,7 +101,7 @@ export function roll(bones: Bone[], callback: () => void) {
     bones.forEach(b => {
         const body = boneBody(b.id)
         // set initial roll position
-        body.position.set(traySize().width / 2, 0, 2)
+        body.position.set(TRAY_WIDTH_UNITS / 2, 0, 2)
         // apply initial force
         body.velocity.set(random(-60, -40), random(-40, 40), random(-20, 0))
         body.quaternion.setFromEuler(randomAngle(), randomAngle(), randomAngle())  
