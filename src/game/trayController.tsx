@@ -1,5 +1,6 @@
 import { Bone } from '../model/gameModel';
 import * as physics from '../model/physics'
+import { Turn } from '../model/turnModel';
 import * as view from '../view/diceTray'
 import * as game from './gameController'
 
@@ -21,6 +22,11 @@ export function resetBones(bones: Bone[]) {
 }
 
 const rolledBoneStates = new Map<string, physics.BoneState>()
+
+export function updateHand(t: Turn) {
+    physics.layoutHand(t)
+}
+
 
 export function keepBone(b: Bone) {
     rolledBoneStates.set(b.id, physics.boneState(b.id))

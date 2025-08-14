@@ -1,9 +1,11 @@
 import * as CANNON from 'cannon-es';
 import { Bone } from './gameModel';
 import {  Point3d, TRAY_HEIGHT_UNITS, TRAY_WIDTH_UNITS } from '../game/trayConsts';
+import { Turn } from './turnModel';
 
 const GRAVITY = -9.82 * 5
 
+const HAND_HEIGHT_UNITS = 2
 
 
 const world = new CANNON.World()
@@ -55,7 +57,7 @@ export function updateBarrierPositions() {
     barrierLeft.position.set(-TRAY_WIDTH_UNITS / 2 * 0.93, 0, 0);
     barrierRight.position.set(TRAY_WIDTH_UNITS / 2 * 0.93, 0, 0);
     barrierTop.position.set(0, TRAY_HEIGHT_UNITS / 2 * 0.93, 0);
-    barrierBottom.position.set(0, -TRAY_HEIGHT_UNITS / 2 * 0.93, 0);
+    barrierBottom.position.set(0, -TRAY_HEIGHT_UNITS / 2 * 0.93 + HAND_HEIGHT_UNITS, 0);
 }
 
 class BoneAndBody {
@@ -151,15 +153,15 @@ function boneBody(id: string) {
 export function boneState(id: string): BoneState {
     const body = boneBody(id).body
     return {
-        position: body.position,
-        quaternion: body.quaternion,
+        position: body.position.clone(),
+        quaternion: body.quaternion.clone(),
     }
 }
 
 export function setBoneState(id: string, state: BoneState) {
     const body = boneBody(id).body
-    body.position = state.position
-    body.quaternion = state.quaternion
+    body.position = state.position.clone()
+    body.quaternion = state.quaternion.clone()
 }
 
 function bonesStationary() {
@@ -205,5 +207,21 @@ export function update() {
         rollCallback()
         rollCallback = () => {}
     }
+}
+
+export function layoutHand(turn: Turn) {
+    let x = -TRAY_WIDTH_UNITS / 2 + 2
+    let y = -TRAY_HEIGHT_UNITS / 2 + 1
+    let MARGIN_UNITS = 0.5
+    turn.hold.forEach(b => {
+        const bb = boneBody(b.id)
+        bb.body.position.set(x, y, bb.body.position.z)
+        x += bb.bone.size + MARGIN_UNITS
+    })
+    turn.keep.forEach(b => {
+        const bb = boneBody(b.id)
+        bb.body.position.set(x, y, bb.body.position.z)
+        x += bb.bone.size + MARGIN_UNITS
+    })
 }
 

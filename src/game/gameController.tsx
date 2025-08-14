@@ -18,5 +18,5 @@ export function update() {
 }
 
 export function onBoneInTrayClicked(b: Bone) {
-    turnController.onBoneInTrayClick(b)
+    turnController.onBoneClick(b)
 }

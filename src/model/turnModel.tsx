@@ -4,7 +4,7 @@ export class Turn {
     allBones: Bone[]
     availableBones: Bone[] = []
     keep: Bone[] = []
-    held: Bone[] = []
+    hold: Bone[] = []
 
     constructor(bones: Bone[]) {
         this.allBones = bones
@@ -19,6 +19,18 @@ export class Turn {
     unkeepBone(b: Bone) {
         remove(this.keep, b)
         this.availableBones.push(b)
+    }
+
+    isAvailable(b: Bone) {
+        return this.availableBones.indexOf(b) > -1
+    }
+
+    isInKeep(b: Bone) {
+        return this.keep.indexOf(b) > -1
+    }
+
+    isInHold(b: Bone) {
+        return this.hold.indexOf(b) > -1
     }
 }
 
