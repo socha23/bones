@@ -16,6 +16,10 @@ export class TurnController {
 
     constructor(bones: Bone[]) {
         this.turn = new Turn(bones)
+
+        // TODO REMOVE
+        bones[0].lastResult = bones[0].faces[0]
+        this.turn.keepBone(bones[0])
     }
 
     roll() {
@@ -32,9 +36,7 @@ export class TurnController {
     }
 
     onRollComplete() {
-        console.log("COMPLETE")
         this.state = State.BETWEEN_ROLLS
-
     }
 
     update() {
@@ -48,9 +50,7 @@ export class TurnController {
     }
 
     onBoneInKeptClick(b: Bone) {
-            console.log("ONCL1", this.state)
         if (this.state == State.BETWEEN_ROLLS) {
-            console.log("ONCL2")
             this.unkeepBone(b)
         }
     }

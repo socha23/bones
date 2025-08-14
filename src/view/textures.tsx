@@ -3,34 +3,26 @@ import { FaceType } from '../model/faceTypes';
 
 const loader = new THREE.TextureLoader();
 
-const textures = {
-    [FaceType.BLANK]: loader.load('faces/blank.png'),
-    [FaceType.I1]: createTextTexture("1"),
-    [FaceType.I2]: createTextTexture("2"),
-    [FaceType.I3]: createTextTexture("3"),
-    [FaceType.I4]: createTextTexture("4"),
-    [FaceType.I5]: createTextTexture("5"),
-    [FaceType.I6]: createTextTexture("6"),
-    [FaceType.SWORD]: loader.load('faces/sword2.png'),
+const faceImages = {
+    [FaceType.BLANK]: 'faces/blank.png',
+    [FaceType.I1]: 'faces/i1.png',
+    [FaceType.I2]: 'faces/i2.png',
+    [FaceType.I3]: 'faces/i3.png',
+    [FaceType.I4]: 'faces/i4.png',
+    [FaceType.I5]: 'faces/i5.png',
+    [FaceType.I6]: 'faces/i6.png',
+    [FaceType.SWORD]: 'faces/sword.png',
 }
 
+const faceTextures = new Map<FaceType, THREE.Texture>()
 
-export function textureForFaceType(t: FaceType) {
-    return textures[t]
+export function textureForFaceType(t: FaceType): THREE.Texture {
+    if (!faceTextures.has(t)) {
+        faceTextures.set(t, loader.load(faceImages[t]))
+    }
+    return faceTextures.get(t)!!
 }
 
-function createTextTexture(text: string) {
-    var canvas = document.createElement("canvas")
-    var context = canvas.getContext("2d")!!
-    const ts = 128
-    canvas.width = canvas.height = ts;
-    context.font = (ts * 0.8)  + "pt Arial";
-//    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillStyle = "#000000";
-    context.fillText(text, canvas.width / 2, canvas.height / 1.7);
-    const t = new THREE.Texture(canvas)
-    t.needsUpdate = true
-    return t
+export function imageForFaceType(t: FaceType): string {
+    return faceImages[t]
 }

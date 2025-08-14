@@ -53,7 +53,7 @@ class BoneMesh {
         this.bone = b
         const geometry = new RoundedBoxGeometry(b.size, b.size, b.size, 3, b.size / 10)
         const material = new THREE.MeshPhongMaterial({
-            color: 0x888888, //DICE_COLOR,
+            color: b.color, //DICE_COLOR,
             shininess: 50,
             specular: 0x172022,
         })
