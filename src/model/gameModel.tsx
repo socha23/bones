@@ -9,9 +9,11 @@ export interface BoneParams {
 }
 
 export class Face {
+    idx: number
     type: FaceType
 
-    constructor(type: FaceType = FaceType.BLANK) {
+    constructor(idx: number, type: FaceType = FaceType.BLANK) {
+        this.idx = idx
         this.type = type
     }
 }
@@ -22,7 +24,7 @@ export class Bone {
     size: number
     mass: number
     faces: Face[]
-    lastResult: Face = new Face(FaceType.BLANK)
+    lastResult: Face = new Face(0)
 
     constructor(p: BoneParams) {
         this.size = p.size || 1
@@ -30,13 +32,14 @@ export class Bone {
         this.mass = 1
 
         this.faces = [
-            new Face(FaceType.I1),
-            new Face(FaceType.I2),
-            new Face(FaceType.I3),
-            new Face(FaceType.I4),
-            new Face(FaceType.I5),
-            new Face(FaceType.I6),
+            new Face(0, FaceType.I1),
+            new Face(1, FaceType.I2),
+            new Face(2, FaceType.I3),
+            new Face(3, FaceType.I4),
+            new Face(4, FaceType.I5),
+            new Face(5, FaceType.I6),
         ]
     }
+
 
 }

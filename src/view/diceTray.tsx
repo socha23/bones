@@ -70,16 +70,16 @@ class BoneMesh {
         const faceDefs = [
             // x y z rotX rotY rotZ 
             [0, 0, b.size / 2, 0, 0, 0], // 1
-            [0, 0, -b.size / 2, 0, 0, Math.PI / 2], // 6
-            [b.size / 2, 0, 0, 0, Math.PI / 2, 0], // 2
-            [-b.size / 2, 0, 0, 0, Math.PI / 2, Math.PI / 2], // 5
+            [-b.size / 2, 0, 0, 0, Math.PI / 2, Math.PI / 2], // 2
             [0, b.size / 2, 0, Math.PI / 2, 0, 0], // 3
             [0, -b.size / 2, 0, Math.PI / 2, 0, Math.PI / 2], // 4
+            [b.size / 2, 0, 0, 0, -Math.PI / 2, Math.PI / 2], // 5
+            [0, 0, -b.size / 2, 0, Math.PI, Math.PI], // 6
         ]
         faceDefs.forEach((f, idx) => {
         const face = this._createFaceMesh(b, b.faces[idx])
         face.position.set(f[0], f[1], f[2])
-        face.rotation.set(f[3], f[4], f[5])
+        face.rotation.set(f[3], f[4], f[5], "XYZ")
         this.faces.push(face)
         this.body.add(face)
     })

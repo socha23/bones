@@ -78,6 +78,11 @@ class BoneAndBody {
         this.setMass(this.bone.mass)
     }
 
+    straightenUp() {
+        const euler = FACE_UP_EULER[this.bone.lastResult.idx]
+        this.body.quaternion.setFromEuler(euler.x, euler.y, euler.z, "ZXY")
+    }
+
     setMass(m: number) {
         const newBody = createBoneBody(this.bone, m)
         newBody.position = this.body.position
@@ -177,9 +182,20 @@ function bonesStationary() {
     return stillRolling.length === 0
 }
 
+const FACE_UP_EULER = [
+    {x: 0, y: 0, z: 0},
+    {x:  0, y: Math.PI / 2, z: Math.PI / 2}, // -0.5 0.5 0.5 0.5
+    {x: Math.PI / 2, y: 0, z: Math.PI}, // 0 1 1 0
+    {x: -Math.PI / 2, y: 0, z: -Math.PI / 2}, // -0.5 0.5 -0.5 0.5
+    {x:  0, y: -Math.PI / 2, z: Math.PI / 2}, // 0.5 -0.5 0.5 0.5
+    {x: 0, y: Math.PI, z: Math.PI}, // -1 0 0 0
+]
+
 export function resetBones(bones: Bone[]) {
     clearBoneBodies()
     bones.forEach((b, idx) => {
+        
+        //q.setFromEuler(rot.x, rot.y, rot.z, "ZXY")
         addBone(b, {x: 100, y: idx * 10, z: b.size / 2}, new CANNON.Quaternion()) // out of board
     })
 }
@@ -215,11 +231,13 @@ export function layoutHand(turn: Turn) {
     let MARGIN_UNITS = 0.5
     turn.hold.forEach(b => {
         const bb = boneBody(b.id)
+        bb.straightenUp()
         bb.body.position.set(x, y, bb.body.position.z)
         x += bb.bone.size + MARGIN_UNITS
     })
     turn.keep.forEach(b => {
         const bb = boneBody(b.id)
+        bb.straightenUp()
         bb.body.position.set(x, y, bb.body.position.z)
         x += bb.bone.size + MARGIN_UNITS
     })
