@@ -8,6 +8,7 @@ enum State {
     BEFORE_FIRST_ROLL,
     ROLL,
     BETWEEN_ROLLS,
+    TURN_END,
 }
 
 const rolledBoneStates = new Map<string, physics.BoneState>()
@@ -48,8 +49,7 @@ export class TurnController {
     }
 
     boneHandPosition(b: Bone): Point3d {
-        const BONE_GAP = 0.5
-    
+        const BONE_GAP = 0.5 
         let x = -TRAY_WIDTH_UNITS / 2 + 1
 
         function posWithX(x: number) {
@@ -85,6 +85,25 @@ export class TurnController {
         throw "Bone not in hand!"
     }
 
+    turnResultBonePosition(b: Bone) {
+        const BONE_GAP = 0.5 
+        let x = -TRAY_WIDTH_UNITS / 2 + 1
+
+        for (let i = 0; i < this.turn.hold.length; i++) {
+            const bb = this.turn.hold[i]
+            x += bb.size / 2
+            if (b === bb) {
+                return {
+                    x: x, y: 0, z: b.size / 2
+                }
+            }
+            x += bb.size / 2
+            x += BONE_GAP
+        }
+        // bone not in hold
+        throw "Bone not in hold!"
+    }
+
     keepBone(b: Bone) {
         rolledBoneStates.set(b.id, physics.boneState(b.id))
         this.turn.keepBone(b)
@@ -118,6 +137,23 @@ export class TurnController {
         this.moveKeepToHold()
         this.turn.rerollsLeft--
         this._roll()
+    }
+
+    isEndTurnEnabled() {
+        return this.state == State.BETWEEN_ROLLS
+    }
+
+    onEndTurn() {
+        this.turn.moveKeepToHold()
+        this.turn.moveAvailableToHold()
+        // move bones to end positions
+        this.turn.hold.forEach(b => {
+            physics.moveBone(b.id, {
+                position: this.turnResultBonePosition(b),
+                quaternion: physics.FACE_UP_QUATERNION[b.lastResult.idx]
+            })
+        })
+        this.state = State.TURN_END
     }
 
     _roll() {

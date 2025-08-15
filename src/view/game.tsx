@@ -7,13 +7,16 @@ const UI_REFRESH_S = 0.01
 
 interface UiState {
   rerollEnabled: boolean
-  rerollsLeft: number,
-}
+  rerollsLeft: number
+  endTurnEnabled: boolean
+} 
+ 
 
 function getUiState(): UiState {
   const turnController = gameController.currentTurnController()
   return {
     rerollEnabled: turnController.isRerollEnabled(),
+    endTurnEnabled: turnController.isEndTurnEnabled(),
     rerollsLeft: turnController.turn.rerollsLeft,
   }
 }
@@ -40,6 +43,10 @@ export const Game = () => {
             disabled={!uiState.rerollEnabled} 
             onClick={e => {gameController.currentTurnController().onReroll()}}
             >Reroll ({uiState.rerollsLeft} left)</button>
+          <button
+            disabled={!uiState.endTurnEnabled} 
+            onClick={e => {gameController.currentTurnController().onEndTurn()}}
+            >End turn</button>
         </div>
         <div style={{
             display: "flex", 

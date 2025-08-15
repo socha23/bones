@@ -38,6 +38,11 @@ export class Turn {
         this.keep.forEach(b => {this.hold.push(b)})
         this.keep = []
     }
+
+    moveAvailableToHold() {
+        this.availableBones.forEach(b => {this.hold.push(b)})
+        this.availableBones = []
+    }
 }
 
 
