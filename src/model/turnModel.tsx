@@ -32,6 +32,11 @@ export class Turn {
     isInHold(b: Bone) {
         return this.hold.indexOf(b) > -1
     }
+
+    moveKeepToHold() {
+        this.keep.forEach(b => {this.hold.push(b)})
+        this.keep = []
+    }
 }
 
 

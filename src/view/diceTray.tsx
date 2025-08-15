@@ -176,16 +176,24 @@ function onMouseOut() {
     currentMousePosition = undefined
 }
 
-var onClickHandler = (b: Bone) => {}
+export interface DiceTrayController {
+    onBoneClick: (b: Bone) => void
+    isClickable: (b: Bone) => boolean
+}
 
-export function setOnBoneClickHandler(h: (b: Bone) => void) {
-    onClickHandler = h
+var controller: DiceTrayController = {
+    onBoneClick: (b: Bone) => {},
+    isClickable: (b: Bone) => false,
+}
+
+export function setController(c: DiceTrayController) {
+    controller = c
 }
 
 function onRendererClick() {
     const b = mouseOverBone()
     if (b) {
-        onClickHandler(b)
+        controller.onBoneClick(b)
     }
 }
 
@@ -224,7 +232,7 @@ export function updateResults() {
 export const DiceTray = () => {
     const ref = useRef<HTMLDivElement>(null)
 
-    const [cursorOverBone, setCursorOverBone] = useState(false)
+    const [cursor, setCursor] = useState("default")
 
     const [rendererMounted, setRendererMounted] = useState(false)
 
@@ -235,7 +243,12 @@ export const DiceTray = () => {
         ref.current?.appendChild(renderer.domElement)
         setRendererMounted(true)
         setInterval(() => {
-            setCursorOverBone(mouseOverBone() != undefined)
+            let newCursor = "default"
+            const b = mouseOverBone()
+            if (b != undefined && controller.isClickable(b)) {
+                newCursor = "pointer"
+            }
+            setCursor(newCursor)
         }, 0.02)
     })
 
@@ -243,7 +256,7 @@ export const DiceTray = () => {
         border: "1px solid #ddd",
         width: RENDERER_WIDTH_PX + 2,
         borderRadius: 3,
-        cursor: cursorOverBone ? "pointer" : "default",
+        cursor: cursor,
     }}>
         <div ref={ref} style={{
             width: RENDERER_WIDTH_PX,

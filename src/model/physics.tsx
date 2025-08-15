@@ -1,6 +1,7 @@
 import * as CANNON from 'cannon-es';
 import { Bone } from './gameModel';
 import {  Point3d, TRAY_HEIGHT_UNITS, TRAY_WIDTH_UNITS } from '../game/trayConsts';
+import { gsap } from "gsap"
 
 const GRAVITY = -9.82 * 5
 
@@ -63,7 +64,6 @@ class BoneAndBody {
     bone: Bone
     body: CANNON.Body
 
-
     constructor(bone: Bone, body: CANNON.Body) {
         this.body = body
         this.bone = bone
@@ -89,6 +89,30 @@ class BoneAndBody {
         world.removeBody(this.body)
         world.addBody(newBody)
         this.body = newBody
+    }
+
+    get x() {
+        return this.body.position.x
+    }
+
+    set x(val: number) {
+        this.body.position.x = val
+    }
+
+    get y() {
+        return this.body.position.y
+    }
+
+    set y(val: number) {
+        this.body.position.y = val
+    }
+
+    get z() {
+        return this.body.position.z
+    }
+
+    set z(val: number) {
+        this.body.position.z = val
     }
 }
 
@@ -199,23 +223,17 @@ export const FACE_UP_QUATERNION = FACE_UP_EULER.map(e => {
 export function resetBones(bones: Bone[]) {
     clearBoneBodies()
     bones.forEach((b, idx) => {
-        
         //q.setFromEuler(rot.x, rot.y, rot.z, "ZXY")
         addBone(b, {x: 100, y: idx * 10, z: b.size / 2}, new CANNON.Quaternion()) // out of board
     })
 }
 
 function clearBoneBodies() {
-    Array.from(boneBodies.keys()).forEach(b => {
-        removeBone(b)
+    Array.from(boneBodies.values()).forEach(bb => {
+        world.removeBody(bb.body)
+        boneBodies.delete(bb.bone.id)
     })
     duringRoll = false
-}
-
-function removeBone(boneId: string) {
-    const b = boneBodies.get(boneId)!!
-    world.removeBody(b.body)
-    boneBodies.delete(boneId)
 }
 
 export function update() {
@@ -230,13 +248,14 @@ export function update() {
     }
 }
 
-
-export function straightenUp(bId: string) {
-    boneBody(bId).straightenUp()
-}
-
-export function moveBone(bId: string, dest: {position: Point3d, quaternion: CANNON.Quaternion}) {
-    setBoneState(bId, dest)
+export function moveBone(bId: string, dest: {position: Point3d, quaternion?: CANNON.Quaternion}) {
+    const bb = boneBody(bId)
+    if (dest.quaternion != undefined) {
+        bb.body.quaternion = dest.quaternion
+    }
+    gsap.to(bb, { 
+        x: dest.position.x, y: dest.position.y, z: dest.position.z, 
+        duration: 0.2 });
 }
 
 
