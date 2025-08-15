@@ -1,22 +1,38 @@
-import { TurnController } from './turnController';
+import { RoundController } from './roundController';
 import { Bone } from '../model/gameModel';
+import { Round } from '../model/roundModel';
+import { Enemy } from '../model/enemyModel';
+import { FaceType } from '../model/faceTypes';
 
-let turnController = new TurnController([
-        new Bone({}),
-        new Bone({}),
-        new Bone({}),
-        new Bone({}),
-        new Bone({}),
-    ])
 
-export function currentTurnController() {
-    return turnController
+const STARTING_FACES = [
+    FaceType.SWORD,
+    FaceType.SWORD,
+    FaceType.BLANK,
+    FaceType.BLANK,
+    FaceType.SHIELD,
+    FaceType.SHIELD,
+]
+
+const roundModel = new Round([
+        new Bone({faces: STARTING_FACES}),
+        new Bone({faces: STARTING_FACES}),
+        new Bone({faces: STARTING_FACES}),
+        new Bone({faces: STARTING_FACES}),
+        new Bone({faces: STARTING_FACES}),
+    ], new Enemy({
+        name: "Goblin",
+        hp: 10
+    })
+
+)
+
+let roundController = new RoundController(roundModel)
+
+export function currentRoundController() {
+    return roundController
 }
 
 export function update() {
-    turnController.update()
-}
-
-export function onBoneInTrayClicked(b: Bone) {
-    turnController.onBoneClick(b)
+    roundController.update()
 }

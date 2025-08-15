@@ -1,30 +1,38 @@
 import { Bone } from '../model/gameModel'
-import { Turn } from '../model/turnModel'
+import { emptyTurnResult, Turn, TurnResult } from '../model/turnModel'
 import * as view from '../view/diceTray'
 import * as physics from '../model/physics'
 import { Point3d, TRAY_HEIGHT_UNITS, TRAY_WIDTH_UNITS } from './trayConsts'
+import { Round } from '../model/roundModel'
 
-enum State {
+export enum State {
     BEFORE_FIRST_ROLL,
     ROLL,
     BETWEEN_ROLLS,
-    TURN_END,
+    DURING_TURN_EFFECTS,
+    AFTER_TURN_EFFECTS,
 }
 
 const rolledBoneStates = new Map<string, physics.BoneState>()
 
-export class TurnController {
+export class RoundController {
     state: State = State.BEFORE_FIRST_ROLL
-    turn: Turn
+    round: Round
+    endOfTurnResult: TurnResult = emptyTurnResult()
 
-    constructor(bones: Bone[]) {
+    constructor(round: Round) {
         view.setController(this)
-        this.turn = new Turn(bones)
+        this.round = round
         this.onResetTurn()
+    }
+
+    get turn(): Turn {
+        return this.round.turn
     }
 
     onResetTurn() {
         this.turn.reset()
+        this.endOfTurnResult = emptyTurnResult()
         this.state = State.BEFORE_FIRST_ROLL
         physics.resetBones(this.turn.allBones)
         view.resetBones(this.turn.allBones)
@@ -105,7 +113,6 @@ export class TurnController {
             x += bb.size / 2
             x += BONE_GAP
         }
-        // bone not in hold
         throw "Bone not in hold!"
     }
 
@@ -158,7 +165,13 @@ export class TurnController {
                 quaternion: physics.FACE_UP_QUATERNION[b.lastResult.idx]
             })
         })
-        this.state = State.TURN_END
+        this.state = State.DURING_TURN_EFFECTS
+        
+        this.turn.hold.forEach(b => {
+            this.turn.applyBoneResult(b, this.endOfTurnResult)
+        })
+        // do something with calculated results
+
         console.log("TURN END", this.turn.getResults())
     }
 

@@ -12,6 +12,10 @@ const CAMERA_HEIGHT = 23
 const RENDERER_WIDTH_PX = 800
 const RENDERER_HEIGHT_PX = RENDERER_WIDTH_PX / TRAY_WIDTH_UNITS * TRAY_HEIGHT_UNITS
 
+export const TRAY_WIDTH_PX = RENDERER_WIDTH_PX + 2
+export const TRAY_HEIGHT_PX = RENDERER_HEIGHT_PX + 2
+
+
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(FOV, RENDERER_WIDTH_PX / RENDERER_HEIGHT_PX, 0.1, 100)
 camera.position.set(0, 0, CAMERA_HEIGHT)
@@ -253,8 +257,10 @@ export const DiceTray = () => {
     })
 
     return <div style={{
+        position: "absolute",
         border: "1px solid #ddd",
         width: RENDERER_WIDTH_PX + 2,
+        height: RENDERER_HEIGHT_PX + 2,
         borderRadius: 3,
         cursor: cursor,
     }}>

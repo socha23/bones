@@ -3,9 +3,11 @@ import { FaceType } from "./faceTypes"
 var boneIdx = 0
 
 export interface BoneParams {
-    size?: number,
-    mass?: number,
-    color?: string,
+    faces: FaceType[]
+    size?: number
+    mass?: number
+    color?: string
+
 }
 
 export class Face {
@@ -31,14 +33,7 @@ export class Bone {
         this.color = p.color || "#888888"
         this.mass = 1
 
-        this.faces = [
-            new Face(0, FaceType.I1),
-            new Face(1, FaceType.I2),
-            new Face(2, FaceType.I3),
-            new Face(3, FaceType.I4),
-            new Face(4, FaceType.I5),
-            new Face(5, FaceType.I6),
-        ]
+        this.faces = p.faces.map((t, idx) => new Face(idx, t))
     }
 
 

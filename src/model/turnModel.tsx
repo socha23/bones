@@ -58,6 +58,7 @@ export class Turn {
         return r
     }
 
+    /** this doesnt actually change state */
     applyBoneResult(b: Bone, r: TurnResult) {
         const f = b.lastResult
         switch (f.type) {
