@@ -53,10 +53,10 @@ export class TurnController {
 
     keepBone(b: Bone) {
         rolledBoneStates.set(b.id, physics.boneState(b.id))
+        const newIdx = this.turn.keep.length
         this.turn.keepBone(b)
-
         physics.moveBone(b.id, {
-            position: this.boneKeepPosition(b, this.turn.keep.length),
+            position: this.boneKeepPosition(b, newIdx),
             // straighten bone up on keep
             quaternion: physics.FACE_UP_QUATERNION[b.lastResult.idx],
         })
@@ -65,7 +65,7 @@ export class TurnController {
     boneKeepPosition(b: Bone, idxInKeep: number): Point3d {
         const BONE_GAP = 0.5
     
-        let x = -TRAY_WIDTH_UNITS / 2
+        let x = -TRAY_WIDTH_UNITS / 2 + 1
         let y = -TRAY_HEIGHT_UNITS / 2 + 1 
 
         for (let i = 0; i < idxInKeep; i++) {
@@ -81,11 +81,23 @@ export class TurnController {
     }
 
     unkeepBone(b: Bone) {
-        const state = rolledBoneStates.get(b.id)!!
-        rolledBoneStates.delete(b.id)
+        
+        const keepIdx = this.turn.keep.indexOf(b)
         this.turn.unkeepBone(b)
 
+        const state = rolledBoneStates.get(b.id)!!
+        rolledBoneStates.delete(b.id)
         physics.moveBone(b.id, state)
+
+        // move later bones back to close the gap
+        for (let i = keepIdx; i < this.turn.keep.length; i++) {
+            const b = this.turn.keep[i]
+            const current = physics.boneState(b.id)
+            physics.moveBone(b.id, {
+                position: this.boneKeepPosition(b, i), 
+                quaternion: current.quaternion
+            })
+        }
     }
 
     isRollEnabled() {
