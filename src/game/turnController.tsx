@@ -21,6 +21,8 @@ export class TurnController {
         physics.resetBones(bones)
         view.resetBones(bones)
         view.setController(this)
+
+        setTimeout(() => {this._roll()}, 1)
     }
 
     isClickable(b: Bone) {
@@ -28,19 +30,6 @@ export class TurnController {
             return false
         }
         return this.turn.isAvailable(b) || this.turn.isInKeep(b)
-    }
-
-    roll() {
-        if (this.state == State.ROLL) {
-            return
-        }
-        this.moveKeepToHold()
-        this.state = State.ROLL
-        const bones = this.turn.availableBones
-        physics.roll(bones, () => {
-            view.updateResults()
-            this.state = State.BETWEEN_ROLLS
-        })
     }
 
     update() {
@@ -79,7 +68,8 @@ export class TurnController {
                 x += bb.size / 2
                 x += BONE_GAP
             }
-            x += BONE_GAP * 4
+            // gap between hold and keep
+            //x += BONE_GAP * 4
         }
 
         for (let i = 0; i < this.turn.keep.length; i++) {
@@ -119,9 +109,26 @@ export class TurnController {
         })
     }
 
-    isRollEnabled() {
-        return this.state != State.ROLL
+    isRerollEnabled() {
+        return this.state == State.BETWEEN_ROLLS
+            && this.turn.rerollsLeft > 0
     }
+
+    onReroll() {
+        this.moveKeepToHold()
+        this.turn.rerollsLeft--
+        this._roll()
+    }
+
+    _roll() {
+        this.state = State.ROLL
+        const bones = this.turn.availableBones
+        physics.roll(bones, () => {
+            view.updateResults()
+            this.state = State.BETWEEN_ROLLS
+        })
+    }
+
 
     moveKeepToHold() {
         this.turn.moveKeepToHold()

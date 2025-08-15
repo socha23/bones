@@ -5,6 +5,7 @@ export class Turn {
     availableBones: Bone[] = []
     keep: Bone[] = []
     hold: Bone[] = []
+    rerollsLeft: number = 2
 
     constructor(bones: Bone[]) {
         this.allBones = bones

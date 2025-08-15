@@ -6,20 +6,20 @@ import * as gameController from '../game/gameController';
 const UI_REFRESH_S = 0.01
 
 interface UiState {
-  rollEnabled: boolean
+  rerollEnabled: boolean
+  rerollsLeft: number,
 }
 
 function getUiState(): UiState {
   const turnController = gameController.currentTurnController()
   return {
-    rollEnabled: turnController.isRollEnabled(),
+    rerollEnabled: turnController.isRerollEnabled(),
+    rerollsLeft: turnController.turn.rerollsLeft,
   }
 }
 
 export const Game = () => {
-  const [uiState, setUiState] = useState<UiState>({
-    rollEnabled: false,
-  })
+  const [uiState, setUiState] = useState<UiState>(getUiState())
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -35,11 +35,11 @@ export const Game = () => {
         height: "100%",
         width: "100%",
       }}>
-        <div style={{display: "flex", flexDirection: "column"}}>
+        <div style={{display: "flex", flexDirection: "column", width: 200,}}>
           <button
-            disabled={!uiState.rollEnabled} 
-            onClick={e => {gameController.currentTurnController().roll()}}
-            >Roll'em bones!</button>
+            disabled={!uiState.rerollEnabled} 
+            onClick={e => {gameController.currentTurnController().onReroll()}}
+            >Reroll ({uiState.rerollsLeft} left)</button>
         </div>
         <div style={{
             display: "flex", 
