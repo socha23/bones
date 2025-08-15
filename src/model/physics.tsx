@@ -1,7 +1,6 @@
 import * as CANNON from 'cannon-es';
 import { Bone } from './gameModel';
 import {  Point3d, TRAY_HEIGHT_UNITS, TRAY_WIDTH_UNITS } from '../game/trayConsts';
-import { Turn } from './turnModel';
 
 const GRAVITY = -9.82 * 5
 
@@ -94,7 +93,7 @@ class BoneAndBody {
 }
 
 export interface BoneState {
-    position: CANNON.Vec3,
+    position: Point3d,
     quaternion: CANNON.Quaternion,
 }
 
@@ -165,7 +164,7 @@ export function boneState(id: string): BoneState {
 
 export function setBoneState(id: string, state: BoneState) {
     const body = boneBody(id).body
-    body.position = state.position.clone()
+    body.position = new CANNON.Vec3(state.position.x, state.position.y, state.position.z)
     body.quaternion = state.quaternion.clone()
 }
 
@@ -190,6 +189,12 @@ const FACE_UP_EULER = [
     {x:  0, y: -Math.PI / 2, z: Math.PI / 2}, // 0.5 -0.5 0.5 0.5
     {x: 0, y: Math.PI, z: Math.PI}, // -1 0 0 0
 ]
+
+export const FACE_UP_QUATERNION = FACE_UP_EULER.map(e => {
+    const q = new CANNON.Quaternion()
+    q.setFromEuler(e.x, e.y, e.z, "ZXY")
+    return q
+})
 
 export function resetBones(bones: Bone[]) {
     clearBoneBodies()
@@ -225,21 +230,13 @@ export function update() {
     }
 }
 
-export function layoutHand(turn: Turn) {
-    let x = -TRAY_WIDTH_UNITS / 2 + 2
-    let y = -TRAY_HEIGHT_UNITS / 2 + 1
-    let MARGIN_UNITS = 0.5
-    turn.hold.forEach(b => {
-        const bb = boneBody(b.id)
-        bb.straightenUp()
-        bb.body.position.set(x, y, bb.body.position.z)
-        x += bb.bone.size + MARGIN_UNITS
-    })
-    turn.keep.forEach(b => {
-        const bb = boneBody(b.id)
-        bb.straightenUp()
-        bb.body.position.set(x, y, bb.body.position.z)
-        x += bb.bone.size + MARGIN_UNITS
-    })
+
+export function straightenUp(bId: string) {
+    boneBody(bId).straightenUp()
 }
+
+export function moveBone(bId: string, dest: {position: Point3d, quaternion: CANNON.Quaternion}) {
+    setBoneState(bId, dest)
+}
+
 

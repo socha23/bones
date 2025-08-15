@@ -1,13 +1,16 @@
 import { Bone } from '../model/gameModel'
 import { Turn } from '../model/turnModel'
-import * as tray from './trayController'
+import * as view from '../view/diceTray'
+import * as physics from '../model/physics'
+import { Point3d, TRAY_HEIGHT_UNITS, TRAY_WIDTH_UNITS } from './trayConsts'
 
 enum State {
     BEFORE_FIRST_ROLL,
     ROLL,
     BETWEEN_ROLLS,
-
 }
+
+const rolledBoneStates = new Map<string, physics.BoneState>()
 
 export class TurnController {
     state: State = State.BEFORE_FIRST_ROLL
@@ -16,7 +19,9 @@ export class TurnController {
 
     constructor(bones: Bone[]) {
         this.turn = new Turn(bones)
-        tray.resetBones(bones)
+        physics.resetBones(bones)
+        view.resetBones(bones)
+        view.setOnBoneClickHandler((b) => {this.onBoneClick(b)})
     }
 
     roll() {
@@ -25,15 +30,14 @@ export class TurnController {
         }
         this.state = State.ROLL
         const bones = this.turn.availableBones
-        tray.roll(bones, () => {this.onRollComplete()})
-    }
-
-    onRollComplete() {
-        this.state = State.BETWEEN_ROLLS
+        physics.roll(bones, () => {
+            view.updateResults()
+            this.state = State.BETWEEN_ROLLS
+        })
     }
 
     update() {
-        tray.update()
+        physics.update()
     }
 
     onBoneClick(b: Bone) {
@@ -48,15 +52,40 @@ export class TurnController {
     }
 
     keepBone(b: Bone) {
-        tray.keepBone(b)
+        rolledBoneStates.set(b.id, physics.boneState(b.id))
         this.turn.keepBone(b)
-        tray.updateHand(this.turn)
+
+        physics.moveBone(b.id, {
+            position: this.boneKeepPosition(b, this.turn.keep.length),
+            // straighten bone up on keep
+            quaternion: physics.FACE_UP_QUATERNION[b.lastResult.idx],
+        })
+    }
+
+    boneKeepPosition(b: Bone, idxInKeep: number): Point3d {
+        const BONE_GAP = 0.5
+    
+        let x = -TRAY_WIDTH_UNITS / 2
+        let y = -TRAY_HEIGHT_UNITS / 2 + 1 
+
+        for (let i = 0; i < idxInKeep; i++) {
+            x += this.turn.keep[i].size
+            x += BONE_GAP
+        }
+        x += b.size / 2
+        return {
+            x: x,
+            y: y,
+            z: b.size / 2
+        }
     }
 
     unkeepBone(b: Bone) {
-        tray.unkeepBone(b)
+        const state = rolledBoneStates.get(b.id)!!
+        rolledBoneStates.delete(b.id)
         this.turn.unkeepBone(b)
-        tray.updateHand(this.turn)
+
+        physics.moveBone(b.id, state)
     }
 
     isRollEnabled() {
