@@ -7,4 +7,5 @@ export enum FaceType {
     I5,
     I6,
     SWORD,
+    SHIELD,
 }

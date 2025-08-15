@@ -18,8 +18,8 @@ const boneMaterial = new CANNON.Material('bone')
 const planeMaterial = new CANNON.Material('plane')
 const barrierMaterial = new CANNON.Material('barrier')
 world.addContactMaterial(new CANNON.ContactMaterial(planeMaterial, boneMaterial, { friction: 0.01, restitution: 0.5 }))
-world.addContactMaterial(new CANNON.ContactMaterial(barrierMaterial, boneMaterial, { friction: 0.0, restitution: 0.5 }))
-world.addContactMaterial(new CANNON.ContactMaterial(boneMaterial, boneMaterial, { friction: 0.0, restitution: 0.5 }))
+world.addContactMaterial(new CANNON.ContactMaterial(barrierMaterial, boneMaterial, { friction: 0.0, restitution: 0.6 }))
+world.addContactMaterial(new CANNON.ContactMaterial(boneMaterial, boneMaterial, { friction: 0.0, restitution: 0.6 }))
 
 //const planeShape = new CANNON.Box(new CANNON.Vec3(30, 30, 1))
 const planeShape = new CANNON.Plane()
@@ -33,19 +33,19 @@ barrierUp.quaternion.setFromEuler(0, Math.PI, 0)
 world.addBody(barrierUp);
 barrierUp.position.set(0, 0, 5)
 
-const barrierLeft = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
+const barrierLeft = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrierMaterial});
 barrierLeft.quaternion.setFromEuler(0, Math.PI / 2, -Math.PI / 2)
 world.addBody(barrierLeft);
 
-const barrierRight = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
+const barrierRight = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrierMaterial});
 barrierRight.quaternion.setFromEuler(Math.PI, -Math.PI / 2, -Math.PI / 2)
 world.addBody(barrierRight);
 
-const barrierTop = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
+const barrierTop = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrierMaterial});
 barrierTop.quaternion.setFromEuler(-Math.PI / 2, -Math.PI, Math.PI / 2)
 world.addBody(barrierTop);
 
-const barrierBottom = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
+const barrierBottom = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrierMaterial});
 barrierBottom.quaternion.setFromEuler(Math.PI / 2, -Math.PI, Math.PI / 2)
 world.addBody(barrierBottom);
 
@@ -128,7 +128,6 @@ function createBoneBody(b: Bone, mass: number) {
     return new CANNON.Body({ 
         shape: shape,
         material: boneMaterial,
-        angularDamping: 0.1,
         mass: mass,
     })
 }
@@ -147,10 +146,6 @@ function random(from: number, to: number) {
     return Math.random() * (to - from) + from
 }
 
-function randomAngle() {
-    return random(0, 2 * Math.PI)
-}
-
 let duringRoll = false
 let rollCallback = () => {}
 
@@ -158,15 +153,19 @@ export function roll(bones: Bone[], callback: () => void) {
     duringRoll = true
     rollingBones = []
     rollCallback = callback 
-    bones.forEach(b => {
+    bones.forEach((b, idx) => {
         const bb = boneBody(b.id)
         rollingBones.push(bb)
         bb.unfreeze()
         // set initial roll position
-        bb.body.position.set(TRAY_WIDTH_UNITS / 2, 0, 2)
-        // apply initial force
-        bb.body.velocity.set(random(-60, -40), random(-40, 40), random(-20, 0))
-        bb.body.quaternion.setFromEuler(randomAngle(), randomAngle(), randomAngle())  
+        bb.body.position.set(TRAY_WIDTH_UNITS / 2, -TRAY_HEIGHT_UNITS / 2 + HAND_HEIGHT_UNITS + idx, 2 + idx)
+        // apply initial force        
+        bb.body.applyImpulse(
+            new CANNON.Vec3(random(-50, 0), random(-50, 0), random(3, 5)),
+            new CANNON.Vec3(0, 0, .2) // point of application of force is shifted from the center of mass 
+        )
+        //bb.body.velocity.set(random(-60, -40), random(-40, 40), random(-20, 0))
+        //bb.body.quaternion.setFromEuler(randomAngle(), randomAngle(), randomAngle())  
     })     
 }
 

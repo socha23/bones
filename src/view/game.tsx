@@ -47,6 +47,10 @@ export const Game = () => {
             disabled={!uiState.endTurnEnabled} 
             onClick={e => {gameController.currentTurnController().onEndTurn()}}
             >End turn</button>
+            <div style={{height: 100}}/>
+          <button
+            onClick={e => {gameController.currentTurnController().onResetTurn()}}
+            >Reset</button>
         </div>
         <div style={{
             display: "flex", 

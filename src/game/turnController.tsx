@@ -18,14 +18,19 @@ export class TurnController {
     turn: Turn
 
     constructor(bones: Bone[]) {
-        this.turn = new Turn(bones)
-        physics.resetBones(bones)
-        view.resetBones(bones)
         view.setController(this)
-
-        setTimeout(() => {this._roll()}, 1)
+        this.turn = new Turn(bones)
+        this.onResetTurn()
     }
 
+    onResetTurn() {
+        this.turn.reset()
+        this.state = State.BEFORE_FIRST_ROLL
+        physics.resetBones(this.turn.allBones)
+        view.resetBones(this.turn.allBones)
+        setTimeout(() => {this._roll()}, 1)
+
+    }
     isClickable(b: Bone) {
         if (this.state == State.ROLL) {
             return false
@@ -154,6 +159,7 @@ export class TurnController {
             })
         })
         this.state = State.TURN_END
+        console.log("TURN END", this.turn.getResults())
     }
 
     _roll() {
@@ -164,7 +170,6 @@ export class TurnController {
             this.state = State.BETWEEN_ROLLS
         })
     }
-
 
     moveKeepToHold() {
         this.turn.moveKeepToHold()
