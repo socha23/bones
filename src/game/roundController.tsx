@@ -4,6 +4,8 @@ import * as view from '../view/diceTray'
 import * as physics from '../model/physics'
 import { Point3d, TRAY_HEIGHT_UNITS, TRAY_WIDTH_UNITS } from './trayConsts'
 import { Round } from '../model/roundModel'
+import { gsap } from "gsap"
+import { FaceType } from '../model/faceTypes'
 
 export enum State {
     BEFORE_FIRST_ROLL,
@@ -155,6 +157,25 @@ export class RoundController {
         return this.state == State.BETWEEN_ROLLS
     }
 
+    accumulateResults() {
+        const BONE_JUMP_DIST = 0.8
+        const BONE_JUMP_DURATION = 0.5
+        let tl = gsap.timeline()
+
+
+        this.turn.hold.forEach(b => {
+            if (b.lastResult.type != FaceType.BLANK) {
+                const bb = physics.boneBody(b.id)
+                const startY = this.turnResultBonePosition(b).y
+                tl
+                    .delay(0.5)
+                    .add(gsap.to(bb, {y: startY + BONE_JUMP_DIST, duration: BONE_JUMP_DURATION / 2}))
+                    .call(() => { this.turn.applyBoneResult(b, this.endOfTurnResult)})
+                    .add(gsap.to(bb, {y: startY, duration: BONE_JUMP_DURATION / 2}))
+            }
+        })
+    }
+
     onEndTurn() {
         this.turn.moveKeepToHold()
         this.turn.moveAvailableToHold()
@@ -166,12 +187,8 @@ export class RoundController {
             })
         })
         this.state = State.DURING_TURN_EFFECTS
-        
-        this.turn.hold.forEach(b => {
-            this.turn.applyBoneResult(b, this.endOfTurnResult)
-        })
-        // do something with calculated results
-
+        this.accumulateResults() 
+        // accumulate result
         console.log("TURN END", this.turn.getResults())
     }
 

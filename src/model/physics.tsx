@@ -60,7 +60,7 @@ export function updateBarrierPositions() {
     barrierBottom.position.set(0, -TRAY_HEIGHT_UNITS / 2 * 0.93 + HAND_HEIGHT_UNITS, 0);
 }
 
-class BoneAndBody {
+export class BoneAndBody {
     bone: Bone
     body: CANNON.Body
 
@@ -169,7 +169,7 @@ export function roll(bones: Bone[], callback: () => void) {
     })     
 }
 
-function boneBody(id: string) {
+export function boneBody(id: string) {
     if (!boneBodies.has(id)) {
         throw `No such bone: ${id}`
     }
