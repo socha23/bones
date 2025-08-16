@@ -5,12 +5,12 @@ export interface EnemyParams {
 
 export class Enemy {
     name: string 
-    startingHp: number
+    maxHp: number
     hp: number
 
     constructor(p: EnemyParams) {
         this.name = p.name
-        this.startingHp = p.hp
+        this.maxHp = p.hp
         this.hp = p.hp
 
     }

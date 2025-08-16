@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { DiceTray, TRAY_HEIGHT_PX, TRAY_WIDTH_PX } from './diceTray'
 import * as gameController from '../game/gameController';
 import { getRoundOverlayParams, RoundOverlay, RoundOverlayParams } from './roundOverlay';
+import { EnemyView, EnemyViewParams, getEnemyViewParams } from './enemyView';
 
 const UI_REFRESH_S = 0.01
 
@@ -11,6 +12,7 @@ interface UiState {
   rerollsLeft: number
   endTurnEnabled: boolean
   roundOverlay: RoundOverlayParams
+  enemyView: EnemyViewParams
 } 
  
 
@@ -20,7 +22,8 @@ function getUiState(): UiState {
     rerollEnabled: roundController.isRerollEnabled(),
     endTurnEnabled: roundController.isEndTurnEnabled(),
     rerollsLeft: roundController.turn.rerollsLeft,
-    roundOverlay: getRoundOverlayParams(roundController)
+    roundOverlay: getRoundOverlayParams(roundController),
+    enemyView: getEnemyViewParams(roundController),
   }
 }
 
@@ -60,7 +63,7 @@ export const Game = () => {
         <div style={{
             display: "flex", 
             flexDirection: "column",
-            width: "100%",
+            width: TRAY_WIDTH_PX,
             }}>
               <div id="container" style={{
                 width: TRAY_WIDTH_PX,
@@ -70,6 +73,8 @@ export const Game = () => {
                 <RoundOverlay {...uiState.roundOverlay}/>
               </div>
         </div>
+
+        <EnemyView {...uiState.enemyView}/>
       </div>
     </>
 }
