@@ -7,6 +7,8 @@ export class Turn {
     keep: Bone[] = []
     hold: Bone[] = []
     rerollsLeft: number = 2
+    attack: number = 0
+    defence: number = 0
 
     constructor(bones: Bone[]) {
         this.allBones = bones
@@ -18,6 +20,8 @@ export class Turn {
         this.keep = []
         this.hold = []
         this.rerollsLeft = 2
+        this.attack = 0
+        this.defence = 0
     }
 
     keepBone(b: Bone) {
@@ -52,48 +56,25 @@ export class Turn {
         this.availableBones = []
     }
 
-    getResults(): TurnResult {
-        const r = emptyTurnResult()
-        this.hold.forEach(b => {this.applyBoneResult(b, r)})
-        return r
-    }
-
-    /** this doesnt actually change state */
-    applyBoneResult(b: Bone, r: TurnResult) {
-        const f = b.lastResult
-        switch (f.type) {
-            case FaceType.BLANK:
-                break
-            case FaceType.I1:
-                r.numeric += 1
-                break
-            case FaceType.I2:
-                r.numeric += 2
-                break
-            case FaceType.I3:
-                r.numeric += 3
-                break
-            case FaceType.I4:
-                r.numeric += 4
-                break
-            case FaceType.I5:
-                r.numeric += 5
-                break
-            case FaceType.I6:
-                r.numeric += 6
-                break
-            case FaceType.SWORD:
-                r.swords += 1
-                break
-            case FaceType.SHIELD:
-                r.shields += 1
-                break
-            default:
-                throw `Unknown face type effect for ${f.type}`
+    applyBoneResult(b: Bone): BoneEffect {
+        const topFace = b.lastResult.type
+        const result: BoneEffect = {
+            label: '',
+            attackChange: 0,
+            defenceChange: 0,
         }
+        if (topFace == FaceType.SWORD) {
+            this.attack += 1
+            result.attackChange += 1
+            result.label = "+1"
+        } else if (topFace == FaceType.SHIELD) {
+            result.defenceChange++
+            result.label = "+1"
+        }
+        return result
     }
+   
 }
-
 
 function remove(bones: Bone[], b: Bone) {
         const index = bones.indexOf(b, 0)
@@ -103,19 +84,9 @@ function remove(bones: Bone[], b: Bone) {
         bones.splice(index, 1)        
 }
 
-export interface TurnResult {
-    swords: number
-    shields: number
-    numeric: number
+export interface BoneEffect {
+    label: string
+    attackChange: number
+    defenceChange: number
 }
-
-export function emptyTurnResult(): TurnResult {
-    return {
-        swords: 0,
-        shields: 0,
-        numeric: 0,
-    }
-}
- 
-
 

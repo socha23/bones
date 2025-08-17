@@ -1,56 +1,110 @@
 import { TRAY_HEIGHT_PX, TRAY_WIDTH_PX } from './diceTray'
-import {RoundController, State} from '../game/roundController';
-import { TurnResult } from '../model/turnModel';
-import { SHIELD_PATH, SWORD_PATH } from './textures';
+import { useEffect, useState } from 'react';
+import {gsap } from 'gsap'
 
-export interface RoundOverlayParams {
-  endOfTurnResult: TurnResult
-  showBigAppliedTurnResult: boolean
+export interface EffectParams {
+    id?: string
+    text?: string 
+    iconPath?: string,
+    left?: number,
+    top?: number,
 }
 
-export function getRoundOverlayParams(controller: RoundController): RoundOverlayParams {
-  return {
-    endOfTurnResult: controller.endOfTurnResult,
-    showBigAppliedTurnResult: controller.state == State.DURING_TURN_EFFECTS
+let idAutoinc = 1
+
+export class Effect {
+  id: string
+  alive: boolean = true
+  text?: string
+  iconPath?: string
+  left: number
+  top: number
+  
+  constructor(p: EffectParams) {
+    this.id = p.id || "effect" + idAutoinc++
+    this.text = p.text || ""
+    this.iconPath = p.iconPath
+    this.left = p.left || 0
+    this.top = p.top || 0
   }
+
+  get selector() {
+    return "#" + this.id
+  }
+
+  animate(vars: gsap.TweenVars, callback: () => void = () => {}) {
+        gsap.timeline()
+            .add(gsap.to(this.selector, vars))
+            .call(callback)
+
+  }
+
+  animateAndRemove(vars: gsap.TweenVars, callback: () => void = () => {}) {
+      this.animate(vars, () => {
+        this.alive = false
+        callback()
+      })    
+  }
+
+}
+
+
+
+let activeEffects: Effect[] = []
+
+export function addEffect(p: EffectParams): Effect {
+  const e = new Effect(p)
+  activeEffects.push(e)
+  return e
 }
 
 const ICON_SIZE = 64
-const BigNumberWithIcon = (p: {n: number, iconPath: string}) => <div style={{
+
+const EffectView = (p: {effect: Effect}) => <div id={p.effect.id} style={{
+  position: "absolute",
+  left: p.effect.left,
+  top: p.effect.top,
+
   display: "flex",
   alignItems: "center",
   gap: 10,
 }}>
   <div style={{
     fontSize: 96
-  }}>{p.n}</div>
-  <div style={{
+  }}>{p.effect.text}</div>
+  {p.effect.iconPath != undefined && <div style={{
     width: ICON_SIZE,
     height: ICON_SIZE,
-    backgroundImage: `url("${p.iconPath}")`,
+    backgroundImage: `url("${p.effect.iconPath}")`,
     backgroundSize: ICON_SIZE,
-  }}/>
+  }}/>}
 </div>
 
 
-const BigAppliedTurnResult = (p: {result: TurnResult}) => <div style={{
-  position: "absolute",
-  top: 75,
-  left: 75,
-  display: "flex",
-  gap: 40,
-}}>
-  {p.result.shields > 0 && <BigNumberWithIcon n={p.result.shields} iconPath={SHIELD_PATH}/>}
-  {p.result.swords > 0 && <BigNumberWithIcon n={p.result.swords} iconPath={SWORD_PATH}/>}
-  
-</div>
+export const TrayOverlay = () => {
 
-export const RoundOverlay = (p: RoundOverlayParams) => <div style={{
-      position: "absolute",
-      width: TRAY_WIDTH_PX,
-      height: TRAY_HEIGHT_PX,
-      pointerEvents: "none",
-      zIndex: 10,
-  }}>
-    {p.showBigAppliedTurnResult && <BigAppliedTurnResult result={p.endOfTurnResult} />}
-  </div>
+  const REFRESH_INTERVAL = 0.02
+
+  const [effects, setEffects] = useState<Effect[]>([])
+  useEffect(() => {
+    setInterval(() => {
+        activeEffects = activeEffects.filter(e => e.alive)
+        setEffects(activeEffects)
+    }, REFRESH_INTERVAL)
+  })
+
+  return <div 
+    id="overlay"
+    style={{
+        position: "absolute",
+        top: 0,
+        width: "100%",
+        height: TRAY_HEIGHT_PX,
+        pointerEvents: "none",
+        zIndex: 10,
+    }}>
+      {
+        effects.map((e, i) => <EffectView key={i} effect={e}/>)
+      }
+    </div>
+}

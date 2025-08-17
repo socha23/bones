@@ -3,7 +3,7 @@ import { Bone } from '../model/gameModel';
 import { Round } from '../model/roundModel';
 import { Enemy } from '../model/enemyModel';
 import { FaceType } from '../model/faceTypes';
-
+import { log } from '../model/log';
 
 const STARTING_FACES = [
     FaceType.SWORD,
@@ -27,6 +27,7 @@ const roundModel = new Round([
 
 )
 
+log("Game started")
 let roundController = new RoundController(roundModel)
 
 export function currentRoundController() {

@@ -3,6 +3,10 @@ export interface EnemyParams {
     hp: number
 } 
 
+export interface InfilctDamageResults {
+    hpLoss: number
+}
+
 export class Enemy {
     name: string 
     maxHp: number
@@ -13,5 +17,17 @@ export class Enemy {
         this.maxHp = p.hp
         this.hp = p.hp
 
+    }
+
+    inflictDamage(hitDamage: number): InfilctDamageResults {
+        const hpLoss = Math.min(this.hp, hitDamage)
+        this.hp -= hpLoss
+        return {
+            hpLoss
+        }
+    }
+
+    isKilled() {
+        return this.hp <= 0
     }
 }

@@ -1,11 +1,15 @@
 import { Bone } from '../model/gameModel'
-import { emptyTurnResult, Turn, TurnResult } from '../model/turnModel'
+import { Turn } from '../model/turnModel'
 import * as view from '../view/diceTray'
 import * as physics from '../model/physics'
 import { Point3d, TRAY_HEIGHT_UNITS, TRAY_WIDTH_UNITS } from './trayConsts'
 import { Round } from '../model/roundModel'
 import { gsap } from "gsap"
 import { FaceType } from '../model/faceTypes'
+import { log } from '../model/log'
+import { addEffect, Effect } from '../view/roundOverlay'
+import { SWORD_PATH } from '../view/textures'
+import { getAttackAccumulationPosition } from '../view/elemPositions'
 
 export enum State {
     BEFORE_FIRST_ROLL,
@@ -20,11 +24,12 @@ const rolledBoneStates = new Map<string, physics.BoneState>()
 export class RoundController {
     state: State = State.BEFORE_FIRST_ROLL
     round: Round
-    endOfTurnResult: TurnResult = emptyTurnResult()
+    attackEffect?: Effect
 
     constructor(round: Round) {
         view.setController(this)
         this.round = round
+        log(`Wild ${round.enemy.name} appears!`)
         this.onResetTurn()
     }
 
@@ -34,7 +39,6 @@ export class RoundController {
 
     onResetTurn() {
         this.turn.reset()
-        this.endOfTurnResult = emptyTurnResult()
         this.state = State.BEFORE_FIRST_ROLL
         physics.resetBones(this.turn.allBones)
         view.resetBones(this.turn.allBones)
@@ -157,25 +161,6 @@ export class RoundController {
         return this.state == State.BETWEEN_ROLLS
     }
 
-    accumulateResults() {
-        const BONE_JUMP_DIST = 0.8
-        const BONE_JUMP_DURATION = 0.5
-        let tl = gsap.timeline()
-
-
-        this.turn.hold.forEach(b => {
-            if (b.lastResult.type != FaceType.BLANK) {
-                const bb = physics.boneBody(b.id)
-                const startY = this.turnResultBonePosition(b).y
-                tl
-                    .delay(0.5)
-                    .add(gsap.to(bb, {y: startY + BONE_JUMP_DIST, duration: BONE_JUMP_DURATION / 2}))
-                    .call(() => { this.turn.applyBoneResult(b, this.endOfTurnResult)})
-                    .add(gsap.to(bb, {y: startY, duration: BONE_JUMP_DURATION / 2}))
-            }
-        })
-    }
-
     onEndTurn() {
         this.turn.moveKeepToHold()
         this.turn.moveAvailableToHold()
@@ -187,9 +172,58 @@ export class RoundController {
             })
         })
         this.state = State.DURING_TURN_EFFECTS
-        this.accumulateResults() 
-        // accumulate result
-        console.log("TURN END", this.turn.getResults())
+        this.accumulateBoneResults(() => {this.applyResults()}) 
+    }
+
+    accumulateBoneResults(then: () => void) {
+        const BONE_JUMP_DIST = 0.8
+        const BONE_JUMP_DURATION = 0.5
+        let tl = gsap.timeline()
+        this.turn.hold.forEach(b => {
+            if (b.lastResult.type != FaceType.BLANK) {
+                const bb = physics.boneBody(b.id)
+                const startY = this.turnResultBonePosition(b).y
+                tl
+                    .delay(0.5)
+                    .add(gsap.to(bb, {y: startY + BONE_JUMP_DIST, duration: BONE_JUMP_DURATION / 2}))
+                    .call(() => { this.accumulateBoneResult(b)})
+                    .add(gsap.to(bb, {y: startY, duration: BONE_JUMP_DURATION / 2}))
+            }
+        })
+        tl.call(then)
+    }
+
+    accumulateBoneResult(b: Bone) {
+        const boneEffect = this.turn.applyBoneResult(b)
+        if (boneEffect.attackChange) {
+            if (this.attackEffect == undefined) {
+                this.attackEffect = addEffect({iconPath: SWORD_PATH, ...getAttackAccumulationPosition()})
+            }
+            this.attackEffect.text = `${this.turn.attack}`
+        }
+    }
+
+    applyResults() {
+        const turnDamage = this.turn.attack
+        if (turnDamage > 0) {
+            this.attackEffect!!.animateAndRemove({left: 1000}, () => {
+                const inflicted = this.round.enemy.inflictDamage(turnDamage)
+                log(`Inflicted ${inflicted.hpLoss} damage`)
+                this.attackEffect = undefined
+                this.afterAttackApplied()
+            })
+        } else {
+            this.afterAttackApplied()
+        }   
+    }
+
+    afterAttackApplied() {
+        if (this.round.enemy.isKilled()) {
+            log(`${this.round.enemy.name} is killed!`)
+            // todo eor callback`
+        } else {
+            this.onResetTurn()
+        }
     }
 
     _roll() {
