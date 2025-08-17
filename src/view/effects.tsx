@@ -1,14 +1,13 @@
 import { TRAY_HEIGHT_PX, TRAY_WIDTH_PX } from './diceTray'
-import { useEffect, useState } from 'react';
-import {gsap } from 'gsap'
+import { ReactNode, useEffect, useState } from 'react';
+import { gsap } from 'gsap'
 import { Position } from './elemPositions';
 
 export interface EffectParams {
-    id?: string
-    text?: string 
-    iconPath?: string,
-    left?: number,
-    top?: number,
+  id?: string
+  body: ReactNode
+  left?: number,
+  top?: number,
 }
 
 let idAutoinc = 1
@@ -16,34 +15,34 @@ let idAutoinc = 1
 export class Effect {
   id: string
   alive: boolean = true
-  text?: string
-  iconPath?: string
+  body: ReactNode
   left: number
   top: number
-  
+
   constructor(p: EffectParams) {
+    console.log("Params", p)
     this.id = p.id || "effect" + idAutoinc++
-    this.text = p.text || ""
-    this.iconPath = p.iconPath
+    this.body = p.body
     this.left = p.left || 0
     this.top = p.top || 0
+    console.log("EFFECT SPAWNED", this.left, this.top)
   }
 
   get selector() {
     return "#" + this.id
   }
 
-  animate(vars: gsap.TweenVars, callback: () => void = () => {}) {
-        gsap.timeline()
-            .add(gsap.to(this, vars))
-            .call(callback)
+  animate(vars: gsap.TweenVars, callback: () => void = () => { }) {
+    gsap.timeline()
+      .add(gsap.to(this, vars))
+      .call(callback)
   }
 
-  animateAndRemove(vars: gsap.TweenVars, callback: () => void = () => {}) {
-      this.animate(vars, () => {
-        this.alive = false
-        callback()
-      })    
+  animateAndRemove(vars: gsap.TweenVars, callback: () => void = () => { }) {
+    this.animate(vars, () => {
+      this.alive = false
+      callback()
+    })
   }
 }
 
@@ -56,26 +55,11 @@ export function addEffect(p: EffectParams): Effect {
   return e
 }
 
-const ICON_SIZE = 64
-
-const EffectView = (p: {effect: Effect}) => <div id={p.effect.id} style={{
+const EffectView = (p: { effect: Effect }) => <div id={p.effect.id} style={{
   position: "absolute",
   left: p.effect.left,
   top: p.effect.top,
-
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-}}>
-  <div style={{
-    fontSize: 96
-  }}>{p.effect.text}</div>
-  {p.effect.iconPath != undefined && <div style={{
-    width: ICON_SIZE,
-    height: ICON_SIZE,
-    backgroundImage: `url("${p.effect.iconPath}")`,
-    backgroundSize: ICON_SIZE,
-  }}/>}
+}}>{p.effect.body}
 </div>
 
 
@@ -87,35 +71,36 @@ export const TrayOverlay = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-        activeEffects = activeEffects.filter(e => e.alive)
-        setEffects(activeEffects)
+      activeEffects = activeEffects.filter(e => e.alive)
+      setEffects(activeEffects)
     }, REFRESH_INTERVAL_MS)
     return () => clearInterval(interval)
   })
 
-  return <div 
+  return <div
     id="overlay"
     style={{
-        position: "absolute",
-        top: 0,
-        width: "100%",
-        height: TRAY_HEIGHT_PX,
-        pointerEvents: "none",
-        zIndex: 10,
+      position: "absolute",
+      top: 0,
+      width: "100%",
+      height: TRAY_HEIGHT_PX,
+      pointerEvents: "none",
+      zIndex: 10,
     }}>
-      {
-        effects.map((e, i) => <EffectView key={i} effect={e}/>)
-      }
-    </div>
+    {
+      effects.map((e, i) => <EffectView key={i} effect={e} />)
+    }
+  </div>
 }
 
 
 export function spawnIncrease(position: Position, text: string) {
   const DISTANCE = 100
-  const SPREAD = 0.2
-  
-  const e = addEffect({...position, text: text})
-    const toTop = e.top - DISTANCE
-    const toLeft = e.left + (Math.random() * 2 - 1) * SPREAD * DISTANCE
-    e.animateAndRemove({top: toTop, left: toLeft})
+  const SPREAD = 1
+  const body = <div>{text}</div>
+
+  const e = addEffect({ top: position.top, left: position.left, body: body })
+  const toTop = e.top - DISTANCE
+  const toLeft = e.left + (Math.random() * 2 - 1) * SPREAD * DISTANCE
+  e.animateAndRemove({ top: toTop, left: toLeft })
 }

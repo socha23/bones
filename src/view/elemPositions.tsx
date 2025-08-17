@@ -21,5 +21,6 @@ export function getAttackAccumulationPosition() {
 }
 
 export function getPlayerDefencePosition() {
+    console.log("PPD pos", getPositionByDomId(PLAYER_DEFENCE_DOM_ID))
     return getPositionByDomId(PLAYER_DEFENCE_DOM_ID)
 }

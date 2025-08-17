@@ -10,6 +10,7 @@ import { log } from '../model/log'
 import { addEffect, Effect, spawnIncrease } from '../view/effects'
 import { SWORD_PATH } from '../view/textures'
 import { getAttackAccumulationPosition, getPlayerDefencePosition } from '../view/elemPositions'
+import { AccumulatedAttack } from '../view/accumulatedAttact'
 
 export enum State {
     BEFORE_FIRST_ROLL,
@@ -197,9 +198,11 @@ export class RoundController {
         const boneEffect = this.turn.applyBoneResult(b)
         if (boneEffect.attackChange) {
             if (this.attackEffect == undefined) {
-                this.attackEffect = addEffect({iconPath: SWORD_PATH, ...getAttackAccumulationPosition()})
+                this.attackEffect = addEffect({
+                    body: <AccumulatedAttack/>,    
+                    ...getAttackAccumulationPosition()
+                })
             }
-            this.attackEffect.text = `${this.turn.attack}`
         }
         if (boneEffect.defenceChange) {
             spawnIncrease(getPlayerDefencePosition(), "+" + boneEffect.defenceChange)

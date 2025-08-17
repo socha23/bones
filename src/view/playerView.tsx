@@ -24,17 +24,17 @@ const PlayerDefence = (p: {defence: number}) => <div id={"defence"} style={{
   alignItems: "center",
   gap: 10,
 }}>
-  <div 
-    id={PLAYER_DEFENCE_DOM_ID}
-    style={{
-    fontSize: 64
-  }}>{p.defence}</div>
   <div style={{
     width: DEFENCE_ICON_SIZE,
     height: DEFENCE_ICON_SIZE,
     backgroundImage: `url("${SHIELD_PATH}")`,
     backgroundSize: DEFENCE_ICON_SIZE,
   }}/>
+  <div 
+    id={PLAYER_DEFENCE_DOM_ID}
+    style={{
+    fontSize: 64
+  }}>{p.defence}</div>
 </div>
 
 const PlayerName = (p: {name: string}) => <div style={{
