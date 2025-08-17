@@ -160,6 +160,7 @@ function updateScene() {
 }
 
 renderer.setAnimationLoop(() => {
+    // TODO
     updateScene()
     renderer.render(scene, camera)
 })

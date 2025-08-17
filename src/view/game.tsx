@@ -8,7 +8,7 @@ import { LogView } from './logView';
 import { TrayOverlay } from './roundOverlay';
 import { getPlayerParams, PlayerView, PlayerViewParams } from './playerView';
 
-const UI_REFRESH_S = 0.01
+const UI_REFRESH_MS = 10
 
 interface UiState {
   rerollEnabled: boolean
@@ -39,7 +39,7 @@ export const Game = () => {
     const interval = setInterval(() => {
       setUiState(getUiState())
       gameController.update()
-    }, UI_REFRESH_S)
+    }, UI_REFRESH_MS)
     return () => { clearInterval(interval) }
   })
   return <div id="roundContainer" style={{
@@ -79,7 +79,7 @@ export const Game = () => {
           width: TRAY_WIDTH_PX,
           height: TRAY_HEIGHT_PX,
         }}>
-          <DiceTray />
+          <DiceTray/>
         </div>
       </div>
 

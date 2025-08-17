@@ -236,7 +236,9 @@ function clearBoneBodies() {
 }
 
 export function update() {
-    world.fixedStep()
+    if (duringRoll) {
+        world.fixedStep()
+    }
     if (duringRoll && bonesStationary()) {
         duringRoll = false
         rollingBones.forEach(b => {

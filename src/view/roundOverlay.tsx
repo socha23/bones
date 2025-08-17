@@ -83,14 +83,16 @@ const EffectView = (p: {effect: Effect}) => <div id={p.effect.id} style={{
 
 export const TrayOverlay = () => {
 
-  const REFRESH_INTERVAL = 0.02
+  const REFRESH_INTERVAL_MS = 10
 
   const [effects, setEffects] = useState<Effect[]>([])
+
   useEffect(() => {
-    setInterval(() => {
+    const interval = setInterval(() => {
         activeEffects = activeEffects.filter(e => e.alive)
         setEffects(activeEffects)
-    }, REFRESH_INTERVAL)
+    }, REFRESH_INTERVAL_MS)
+    return () => clearInterval(interval)
   })
 
   return <div 
