@@ -1,6 +1,7 @@
 import { TRAY_HEIGHT_PX, TRAY_WIDTH_PX } from './diceTray'
 import { useEffect, useState } from 'react';
 import {gsap } from 'gsap'
+import { Position } from './elemPositions';
 
 export interface EffectParams {
     id?: string
@@ -34,9 +35,8 @@ export class Effect {
 
   animate(vars: gsap.TweenVars, callback: () => void = () => {}) {
         gsap.timeline()
-            .add(gsap.to(this.selector, vars))
+            .add(gsap.to(this, vars))
             .call(callback)
-
   }
 
   animateAndRemove(vars: gsap.TweenVars, callback: () => void = () => {}) {
@@ -45,9 +45,7 @@ export class Effect {
         callback()
       })    
   }
-
 }
-
 
 
 let activeEffects: Effect[] = []
@@ -109,4 +107,15 @@ export const TrayOverlay = () => {
         effects.map((e, i) => <EffectView key={i} effect={e}/>)
       }
     </div>
+}
+
+
+export function spawnIncrease(position: Position, text: string) {
+  const DISTANCE = 100
+  const SPREAD = 0.2
+  
+  const e = addEffect({...position, text: text})
+    const toTop = e.top - DISTANCE
+    const toLeft = e.left + (Math.random() * 2 - 1) * SPREAD * DISTANCE
+    e.animateAndRemove({top: toTop, left: toLeft})
 }

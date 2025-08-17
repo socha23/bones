@@ -16,13 +16,17 @@ export function getPlayerParams(c: RoundController): PlayerViewParams {
     }
 }
 
+export const PLAYER_DEFENCE_DOM_ID = "playerDefence"
+
 const DEFENCE_ICON_SIZE = 48
 const PlayerDefence = (p: {defence: number}) => <div id={"defence"} style={{
   display: "flex",
   alignItems: "center",
   gap: 10,
 }}>
-  <div style={{
+  <div 
+    id={PLAYER_DEFENCE_DOM_ID}
+    style={{
     fontSize: 64
   }}>{p.defence}</div>
   <div style={{

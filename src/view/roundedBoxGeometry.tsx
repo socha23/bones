@@ -44,11 +44,9 @@ function getUv( faceDirVector: Vector3, normal: Vector3, uvAxis: keyof Vector3, 
 		return arcAngleRatio * arcUvRatio;
 
 	} else {
-
 		// total amount of UV space alloted to the plane between the arcs
 		const lenUv = centerLength / ( totArcLength + centerLength );
 		return lenUv + arcUvRatio + arcUvRatio * ( 1.0 - arcAngleRatio );
-
 	}
 
 }

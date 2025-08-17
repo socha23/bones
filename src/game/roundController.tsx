@@ -7,9 +7,9 @@ import { Round } from '../model/roundModel'
 import { gsap } from "gsap"
 import { FaceType } from '../model/faceTypes'
 import { log } from '../model/log'
-import { addEffect, Effect } from '../view/roundOverlay'
+import { addEffect, Effect, spawnIncrease } from '../view/effects'
 import { SWORD_PATH } from '../view/textures'
-import { getAttackAccumulationPosition } from '../view/elemPositions'
+import { getAttackAccumulationPosition, getPlayerDefencePosition } from '../view/elemPositions'
 
 export enum State {
     BEFORE_FIRST_ROLL,
@@ -202,7 +202,7 @@ export class RoundController {
             this.attackEffect.text = `${this.turn.attack}`
         }
         if (boneEffect.defenceChange) {
-            //
+            spawnIncrease(getPlayerDefencePosition(), "+" + boneEffect.defenceChange)
         }
     }
 

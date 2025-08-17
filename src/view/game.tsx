@@ -5,7 +5,7 @@ import * as gameController from '../game/gameController';
 import { EnemyView, EnemyViewParams, getEnemyViewParams } from './enemyView';
 import { LogMessage, logMessages } from '../model/log';
 import { LogView } from './logView';
-import { TrayOverlay } from './roundOverlay';
+import { TrayOverlay } from './effects';
 import { getPlayerParams, PlayerView, PlayerViewParams } from './playerView';
 
 const UI_REFRESH_MS = 10
