@@ -1,4 +1,5 @@
 import { RoundController } from "../game/roundController"
+import { Icon } from "./accumulatedAttact"
 import { SHIELD_PATH } from "./textures"
 
 export interface PlayerViewParams {
@@ -9,27 +10,22 @@ export interface PlayerViewParams {
 }
 
 export function getPlayerParams(c: RoundController): PlayerViewParams {
-    return {
-        hp: 10,
-        maxHp: 10,
-        defence: c.turn.defence
+  const player = c.round.player  
+  return {
+        hp: player.hp,
+        maxHp: player.maxHp,
+        defence: player.defence,
     }
 }
 
 export const PLAYER_DEFENCE_DOM_ID = "playerDefence"
 
-const DEFENCE_ICON_SIZE = 48
 const PlayerDefence = (p: {defence: number}) => <div id={"defence"} style={{
   display: "flex",
   alignItems: "center",
   gap: 10,
 }}>
-  <div style={{
-    width: DEFENCE_ICON_SIZE,
-    height: DEFENCE_ICON_SIZE,
-    backgroundImage: `url("${SHIELD_PATH}")`,
-    backgroundSize: DEFENCE_ICON_SIZE,
-  }}/>
+  <Icon size={48} path={SHIELD_PATH}/>
   <div 
     id={PLAYER_DEFENCE_DOM_ID}
     style={{

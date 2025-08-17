@@ -31,7 +31,7 @@ export const AccumulatedAttack = () => {
     const [val, setVal] = useState(0)
     useEffect(() => {
         const interval = setInterval(() => {
-            setVal(currentRoundController().turn.attack)
+            setVal(currentRoundController().round.player.attack)
         }, REFRESH_MS)
         return () => {clearInterval(interval)}
     })

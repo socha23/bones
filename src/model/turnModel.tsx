@@ -1,5 +1,6 @@
 import { Bone } from "./gameModel"
 import { FaceType } from "./faceTypes"
+import { Player } from "./playerModel"
 
 export class Turn {
     allBones: Bone[]
@@ -7,8 +8,6 @@ export class Turn {
     keep: Bone[] = []
     hold: Bone[] = []
     rerollsLeft: number = 2
-    attack: number = 0
-    defence: number = 0
 
     constructor(bones: Bone[]) {
         this.allBones = bones
@@ -20,8 +19,6 @@ export class Turn {
         this.keep = []
         this.hold = []
         this.rerollsLeft = 2
-        this.attack = 0
-        this.defence = 0
     }
 
     keepBone(b: Bone) {
@@ -56,7 +53,7 @@ export class Turn {
         this.availableBones = []
     }
 
-    applyBoneResult(b: Bone): BoneEffect {
+    applyBoneResult(p: Player, b: Bone): BoneEffect {
         const topFace = b.lastResult.type
         const result: BoneEffect = {
             label: '',
@@ -64,11 +61,11 @@ export class Turn {
             defenceChange: 0,
         }
         if (topFace == FaceType.SWORD) {
-            this.attack += 1
+            p.attack += 1
             result.attackChange += 1
             result.label = "+1"
         } else if (topFace == FaceType.SHIELD) {
-            this.defence += 1
+            p.defence += 1
             result.defenceChange++
             result.label = "+1"
         }

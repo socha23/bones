@@ -8,9 +8,9 @@ import { gsap } from "gsap"
 import { FaceType } from '../model/faceTypes'
 import { log } from '../model/log'
 import { addEffect, Effect, spawnIncrease } from '../view/effects'
-import { SWORD_PATH } from '../view/textures'
 import { getAttackAccumulationPosition, getPlayerDefencePosition } from '../view/elemPositions'
 import { AccumulatedAttack } from '../view/accumulatedAttact'
+import { describeEnemyAction } from '../model/enemyModel'
 
 export enum State {
     BEFORE_FIRST_ROLL,
@@ -44,8 +44,8 @@ export class RoundController {
         physics.resetBones(this.turn.allBones)
         view.resetBones(this.turn.allBones)
         setTimeout(() => {this._roll()}, 1)
-
     }
+
     isClickable(b: Bone) {
         if (this.state == State.ROLL) {
             return false
@@ -195,7 +195,7 @@ export class RoundController {
     }
 
     accumulateBoneResult(b: Bone) {
-        const boneEffect = this.turn.applyBoneResult(b)
+        const boneEffect = this.turn.applyBoneResult(this.round.player, b)
         if (boneEffect.attackChange) {
             if (this.attackEffect == undefined) {
                 this.attackEffect = addEffect({
@@ -210,13 +210,14 @@ export class RoundController {
     }
 
     applyResults() {
-        const turnDamage = this.turn.attack
+        const turnDamage = this.round.player.attack
         if (turnDamage > 0) {
             this.attackEffect!!.animateAndRemove({left: 1000}, () => {
                 const inflicted = this.round.enemy.inflictDamage(turnDamage)
                 log(`Inflicted ${inflicted.hpLoss} damage`)
                 this.attackEffect = undefined
                 this.afterAttackApplied()
+                this.round.player.attack = 0
             })
         } else {
             this.afterAttackApplied()
@@ -228,8 +229,22 @@ export class RoundController {
             log(`${this.round.enemy.name} is killed!`)
             // todo eor callback`
         } else {
-            this.onResetTurn()
+            this.enemyTurn()
         }
+    }
+
+    enemyTurn() {
+        const enemy = this.round.enemy
+        enemy.defence = 0
+        log(describeEnemyAction(enemy, enemy.nextAction))
+        enemy.applyNextAction()
+        if (enemy.attack > 0) {
+            const inflicted = this.round.player.inflictDamage(enemy.attack)
+        }
+        enemy.attack = 0
+        this.round.player.defence = 0
+        enemy.planNextAction()
+        this.onResetTurn()
     }
 
     _roll() {

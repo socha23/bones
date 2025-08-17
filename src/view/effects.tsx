@@ -1,4 +1,4 @@
-import { TRAY_HEIGHT_PX, TRAY_WIDTH_PX } from './diceTray'
+import { TRAY_HEIGHT_PX } from './diceTray'
 import { ReactNode, useEffect, useState } from 'react';
 import { gsap } from 'gsap'
 import { Position } from './elemPositions';
@@ -20,12 +20,10 @@ export class Effect {
   top: number
 
   constructor(p: EffectParams) {
-    console.log("Params", p)
     this.id = p.id || "effect" + idAutoinc++
     this.body = p.body
     this.left = p.left || 0
     this.top = p.top || 0
-    console.log("EFFECT SPAWNED", this.left, this.top)
   }
 
   get selector() {
