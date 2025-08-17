@@ -68,6 +68,7 @@ export class Turn {
             result.attackChange += 1
             result.label = "+1"
         } else if (topFace == FaceType.SHIELD) {
+            this.defence += 1
             result.defenceChange++
             result.label = "+1"
         }

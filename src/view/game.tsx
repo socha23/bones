@@ -6,6 +6,7 @@ import { EnemyView, EnemyViewParams, getEnemyViewParams } from './enemyView';
 import { LogMessage, logMessages } from '../model/log';
 import { LogView } from './logView';
 import { TrayOverlay } from './roundOverlay';
+import { getPlayerParams, PlayerView, PlayerViewParams } from './playerView';
 
 const UI_REFRESH_S = 0.01
 
@@ -14,6 +15,7 @@ interface UiState {
   rerollsLeft: number
   endTurnEnabled: boolean
   enemyView: EnemyViewParams
+  playerView: PlayerViewParams
   log: LogMessage[]
 }
 
@@ -25,6 +27,7 @@ function getUiState(): UiState {
     endTurnEnabled: roundController.isEndTurnEnabled(),
     rerollsLeft: roundController.turn.rerollsLeft,
     enemyView: getEnemyViewParams(roundController),
+    playerView: getPlayerParams(roundController),
     log: logMessages(),
   }
 }
@@ -50,6 +53,7 @@ export const Game = () => {
     }}>
       { /* buttons */}
       <div style={{ display: "flex", flexDirection: "column", width: 200, }}>
+        <PlayerView {...uiState.playerView}/>        
         <button
           disabled={!uiState.rerollEnabled}
           onClick={e => { gameController.currentRoundController().onReroll() }}

@@ -201,6 +201,9 @@ export class RoundController {
             }
             this.attackEffect.text = `${this.turn.attack}`
         }
+        if (boneEffect.defenceChange) {
+            //
+        }
     }
 
     applyResults() {
