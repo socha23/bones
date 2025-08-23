@@ -1,6 +1,5 @@
 import { RoundController } from './roundController';
 import { Bone } from '../model/gameModel';
-import { Round } from '../model/roundModel';
 import { goblin } from '../model/enemyModel';
 import { FaceType } from '../model/faceTypes';
 import { log } from '../model/log';
@@ -14,16 +13,17 @@ const STARTING_FACES = [
     FaceType.SHIELD,
 ]
 
-const roundModel = new Round([
-        new Bone({faces: STARTING_FACES}),
-        new Bone({faces: STARTING_FACES}),
-        new Bone({faces: STARTING_FACES}),
-        new Bone({faces: STARTING_FACES}),
-        new Bone({faces: STARTING_FACES}),
-    ], goblin())
-
 log("Game started")
-let roundController = new RoundController(roundModel)
+let roundController = new RoundController(
+    () => {return [
+        new Bone({faces: STARTING_FACES}),
+        new Bone({faces: STARTING_FACES}),
+        new Bone({faces: STARTING_FACES}),
+        new Bone({faces: STARTING_FACES}),
+        new Bone({faces: STARTING_FACES}),
+    ]},
+    () => {return goblin()}
+)
 
 export function currentRoundController() {
     return roundController

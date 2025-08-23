@@ -22,14 +22,18 @@ export enum State {
 const rolledBoneStates = new Map<string, physics.BoneState>()
 
 export class RoundController {
+    bonesCreator: () => Bone[]
+
     state: State = State.BEFORE_FIRST_ROLL
     round: Round
+    enemyCreator: () => Enemy
 
-    constructor(round: Round) {
+    constructor(bonesCreator: () => Bone[], enemyCreator: () => Enemy) {
         view.setController(this)
-        this.round = round
-        log(`Wild ${round.enemy.name} appears!`)
-        this.onResetTurn()
+        this.bonesCreator = bonesCreator
+        this.enemyCreator = enemyCreator
+        this.round = new Round(bonesCreator(), enemyCreator())
+        this.onResetRound()
     }
 
     get turn(): Turn {
@@ -44,6 +48,12 @@ export class RoundController {
         }
     }
 
+    onResetRound() {
+        this.round = new Round(this.bonesCreator(), this.enemyCreator())
+        log(`Wild ${this.round.enemy.name} appears!`)
+        this.onResetTurn()
+    }
+
     onResetTurn() {
         this.turn.reset()
         this.state = State.BEFORE_FIRST_ROLL
@@ -53,6 +63,7 @@ export class RoundController {
         this.round.player.attack = 0
         setTimeout(() => { this._roll() }, 1)
     }
+
 
     interfaceLocked() {
         return this.state == State.ROLL || this.state == State.PLAYER_TURN_END || this.state == State.ENEMY_TURN
@@ -185,15 +196,30 @@ export class RoundController {
     onPlayerEndTurnComplete() {
         if (this.round.enemy.isKilled()) {
             log(`${this.round.enemy.name} is killed!`)
-            // todo eor callback`
+            this.onTurnWon()
         } else {
             this.state = State.ENEMY_TURN
             new EnemyTurnSequencer(this, () => { this.onEnemyTurnComplete() }).execute()
         }
     }
 
+    onTurnWon() {
+        window.alert(`${this.round.enemy.name} is dead! Play again?`)
+        this.onResetRound()
+    }
+
+    onTurnLost() {
+        window.alert("Player is dead! Play again?")
+        this.onResetRound()
+    }
+
     onEnemyTurnComplete() {
-        this.onResetTurn()
+        if (this.round.player.hp <= 0) {
+            log(`Player is dead!`)
+            this.onTurnLost()
+        } else {
+            this.onResetTurn()
+        }
     }
 
     _roll() {
