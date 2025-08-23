@@ -71,7 +71,9 @@ const GameDisplay = (p: {uiState: UiState}) => <div style={{
         gap: 10,
       }}>
         { /* left column */}
-        <PlayerView {...p.uiState.playerView}/>                  
+        <div style={{width: 150}}>
+          <PlayerView {...p.uiState.playerView}/>                  
+        </div>
 
         { /* main container */}
         <div style={{display: "flex", flexDirection: "column", gap: 4}}>
@@ -80,7 +82,9 @@ const GameDisplay = (p: {uiState: UiState}) => <div style={{
         </div>
 
         { /* right column */}
-        <EnemyView enemy={p.uiState.enemy} />
+        <div style={{width: 150}}>
+          <EnemyView enemy={p.uiState.enemy} />
+        </div>
       </div>
     </div>
 

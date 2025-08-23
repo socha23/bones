@@ -365,7 +365,7 @@ class EnemyTurnSequencer {
     _30_afterEnemyAttack() {
         gsap.timeline()
             .delay(0.5)
-            .call(() => {this._40_executeNextAction})
+            .call(() => {this._40_executeNextAction()})
     }
 
     _40_executeNextAction() {
@@ -379,7 +379,7 @@ class EnemyTurnSequencer {
             log(describeShieldUp(this.enemy))
             spawnIncrease(tl, getEnemyDefencePosition(), "+" + a.defence)
         }
-        tl.call(() => {this._50_afterExecuteNextAction})
+        tl.call(() => {this._50_afterExecuteNextAction()})
     }
 
     _50_afterExecuteNextAction() {
