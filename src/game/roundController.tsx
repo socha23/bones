@@ -7,9 +7,8 @@ import { Round } from '../model/roundModel'
 import { gsap } from "gsap"
 import { FaceType } from '../model/faceTypes'
 import { log } from '../model/log'
-import { addEffect, Effect, spawnIncrease } from '../view/effects'
-import { getAttackAccumulationPosition, getPlayerAttackPosition, getPlayerDefencePosition } from '../view/domElements'
-import { AccumulatedAttack } from '../view/accumulatedAttact'
+import { spawnIncrease } from '../view/effects'
+import { getPlayerAttackPosition, getPlayerDefencePosition } from '../view/domElements'
 import { describeEnemyAction } from '../model/enemyModel'
 
 export enum State {

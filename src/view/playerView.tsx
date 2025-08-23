@@ -1,6 +1,6 @@
 import { PropsWithChildren } from "react"
 import { RoundController } from "../game/roundController"
-import { Icon } from "./accumulatedAttact"
+import { Icon } from "./common"
 import { SHIELD_PATH, SWORD_PATH } from "./textures"
 import { Player } from "../model/playerModel"
 import { PLAYER_ATTACK_DOM_ID, PLAYER_DEFENCE_DOM_ID } from "./domElements"
