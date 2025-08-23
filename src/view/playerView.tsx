@@ -19,7 +19,7 @@ let domIdAutoinc = 0
 
 const Stat = (p: PropsWithChildren<{iconPath: string, domId?: string, size?: number}>) => {
   const domId = p.domId || "statValue" + domIdAutoinc++
-  const size = p.size || 32
+  const size = p.size || 48
   return <div style={{
     display: "flex",
     alignItems: "center",

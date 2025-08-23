@@ -1,6 +1,7 @@
 import { RoundController } from "../game/roundController"
 import { Enemy, EnemyActionType } from "../model/enemyModel"
-import { Icon } from "./accumulatedAttact"
+import { Icon } from "./common"
+import { ENEMY_HP_DOM_ID } from "./domElements"
 import { SHIELD_PATH, SWORD_PATH } from "./textures"
 
 export interface EnemyViewParams {
@@ -48,7 +49,7 @@ export const EnemyView = (p: EnemyViewParams) => <div style={{
     gap: 10
 }}>
     <EnemyName name={p.enemy.name}/>
-    <div>HP: {p.enemy.hp} / {p.enemy.maxHp}</div>
+    <div id={ENEMY_HP_DOM_ID}>HP: {p.enemy.hp} / {p.enemy.maxHp}</div>
     <div>Defence: {p.enemy.defence}</div>
     <div>Next action:</div>
     <EnemyActionView {...p.enemy.nextAction}/>

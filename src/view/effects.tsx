@@ -2,6 +2,8 @@ import { TRAY_HEIGHT_PX } from './diceTray'
 import { ReactNode, useEffect, useState } from 'react';
 import { gsap } from 'gsap'
 import { Position } from './domElements';
+import { Icon } from './common';
+import { SWORD_PATH } from './textures';
 
 export interface EffectParams {
   id?: string
@@ -14,6 +16,7 @@ let idAutoinc = 1
 
 export class Effect {
   id: string
+  display: boolean
   alive: boolean = true
   body: ReactNode
   left: number
@@ -24,23 +27,24 @@ export class Effect {
     this.body = p.body
     this.left = p.left || 0
     this.top = p.top || 0
+    this.display = false
+  }
+
+  show() {
+    this.display = true
   }
 
   get selector() {
     return "#" + this.id
   }
 
-  animate(vars: gsap.TweenVars, callback: () => void = () => { }) {
-    gsap.timeline()
+  animateAndRemove(tl: gsap.core.Timeline, vars: gsap.TweenVars) {
+    tl
+      .call(() => this.show())
       .add(gsap.to(this, vars))
-      .call(callback)
-  }
-
-  animateAndRemove(vars: gsap.TweenVars, callback: () => void = () => { }) {
-    this.animate(vars, () => {
-      this.alive = false
-      callback()
-    })
+      .call(() => {
+        this.alive = false
+      })
   }
 }
 
@@ -86,13 +90,13 @@ export const TrayOverlay = () => {
       zIndex: 10,
     }}>
     {
-      effects.map((e, i) => <EffectView key={i} effect={e} />)
+      effects.filter(e => e.display).map((e, i) => <EffectView key={i} effect={e} />)
     }
   </div>
 }
 
 
-export function spawnIncrease(position: Position, text: string) {
+export function spawnIncrease(tl: gsap.core.Timeline, position: Position, text: string) {
   const DISTANCE = 60
   const SPREAD = 1
   const body = <div style={{
@@ -106,5 +110,29 @@ export function spawnIncrease(position: Position, text: string) {
   const e = addEffect({ top: position.top, left: position.left, body: body })
   const toTop = e.top - DISTANCE
   const toLeft = e.left + (Math.random() * 2 - 1) * SPREAD * DISTANCE
-  e.animateAndRemove({ top: toTop, left: toLeft , duration: 0.5})
+  e.animateAndRemove(tl, {top: toTop, left: toLeft , duration: 0.5})
+}
+
+export function spawnDecrease(tl: gsap.core.Timeline, position: Position, text: string) {
+  const DISTANCE = 60
+  const SPREAD = 1
+  const body = <div style={{
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#ff0000",
+    WebkitTextStroke: "1px #888",
+    textShadow: "0 0 5px #000",
+  }}>{text}</div>
+
+  const e = addEffect({ top: position.top, left: position.left, body: body })
+  const toTop = e.top + DISTANCE
+  const toLeft = e.left + (Math.random() * 2 - 1) * SPREAD * DISTANCE
+  e.animateAndRemove(tl, {top: toTop, left: toLeft , duration: 0.5})
+}
+
+
+export function animatePlayerAttackEffect(tl: gsap.core.Timeline, position: Position, target: Position) {
+    const body = <Icon size={48} path={SWORD_PATH}/>
+    const effect = addEffect({  top: position.top, left: position.left, body: body })
+    effect.animateAndRemove(tl, { top: target.top, left: target.left , duration: 0.5})
 }

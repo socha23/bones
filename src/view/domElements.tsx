@@ -1,5 +1,8 @@
 export const PLAYER_DEFENCE_DOM_ID = "playerDefence"
 export const PLAYER_ATTACK_DOM_ID = "playerAttack"
+
+export const ENEMY_HP_DOM_ID = "enemyHp"
+
 export const ENEMY_DEFENCE_DOM_ID = "enemyDefence"
 export const ENEMY_ATTACK_DOM_ID = "enemyAttack"
 
@@ -37,4 +40,8 @@ export function getEnemyDefencePosition() {
 
 export function getEnemyAttackPosition() {
     return getPositionByDomId(ENEMY_ATTACK_DOM_ID)
+}
+
+export function getEnemyHpPosition() {
+    return getPositionByDomId(ENEMY_HP_DOM_ID)
 }

@@ -7,16 +7,17 @@ import { Round } from '../model/roundModel'
 import { gsap } from "gsap"
 import { FaceType } from '../model/faceTypes'
 import { log } from '../model/log'
-import { spawnIncrease } from '../view/effects'
-import { getPlayerAttackPosition, getPlayerDefencePosition } from '../view/domElements'
-import { describeEnemyAction } from '../model/enemyModel'
+import { animatePlayerAttackEffect, spawnDecrease, spawnIncrease } from '../view/effects'
+import { getEnemyHpPosition, getPlayerAttackPosition, getPlayerDefencePosition } from '../view/domElements'
+import { describeEnemyAction, Enemy } from '../model/enemyModel'
+import { Player } from '../model/playerModel'
 
 export enum State {
     BEFORE_FIRST_ROLL,
     ROLL,
     BETWEEN_ROLLS,
-    DURING_TURN_EFFECTS,
-    AFTER_TURN_EFFECTS,
+    PLAYER_TURN_END,
+    ENEMY_TURN,
 }
 
 const rolledBoneStates = new Map<string, physics.BoneState>()
@@ -41,7 +42,7 @@ export class RoundController {
         this.state = State.BEFORE_FIRST_ROLL
         physics.resetBones(this.turn.allBones)
         view.resetBones(this.turn.allBones)
-        setTimeout(() => {this._roll()}, 1)
+        setTimeout(() => { this._roll() }, 1)
     }
 
     isClickable(b: Bone) {
@@ -67,12 +68,12 @@ export class RoundController {
     }
 
     boneHandPosition(b: Bone): Point3d {
-        const BONE_GAP = 0.5 
+        const BONE_GAP = 0.5
         let x = -TRAY_WIDTH_UNITS / 2 + 1
 
         function posWithX(x: number) {
             return {
-                x: x, y: -TRAY_HEIGHT_UNITS / 2 + 1, z: b.size /2
+                x: x, y: -TRAY_HEIGHT_UNITS / 2 + 1, z: b.size / 2
             }
         }
 
@@ -104,7 +105,7 @@ export class RoundController {
     }
 
     turnResultBonePosition(b: Bone) {
-        const BONE_GAP = 0.5 
+        const BONE_GAP = 0.5
         let x = -TRAY_WIDTH_UNITS / 2 + 1
 
         for (let i = 0; i < this.turn.hold.length; i++) {
@@ -131,7 +132,7 @@ export class RoundController {
         })
     }
 
-    unkeepBone(b: Bone) {        
+    unkeepBone(b: Bone) {
         this.turn.unkeepBone(b)
 
         const state = rolledBoneStates.get(b.id)!!
@@ -140,7 +141,7 @@ export class RoundController {
 
         this.turn.keep.forEach(b => {
             physics.moveBone(b.id, {
-                position: this.boneHandPosition(b), 
+                position: this.boneHandPosition(b),
             })
         })
     }
@@ -163,58 +164,12 @@ export class RoundController {
     onEndTurn() {
         this.turn.moveKeepToHold()
         this.turn.moveAvailableToHold()
-        // move bones to end positions
-        this.turn.hold.forEach(b => {
-            physics.moveBone(b.id, {
-                position: this.turnResultBonePosition(b),
-                quaternion: physics.FACE_UP_QUATERNION[b.lastResult.idx]
-            })
-        })
-        this.state = State.DURING_TURN_EFFECTS
-        this.accumulateBoneResults(() => {this.applyResults()}) 
+
+        this.state = State.PLAYER_TURN_END
+        new PlayerTurnEndSequencer(this, () => { this.onPlayerEndTurnComplete() }).execute()
     }
 
-    accumulateBoneResults(then: () => void) {
-        const BONE_JUMP_DIST = 0.8
-        const BONE_JUMP_DURATION = 0.5
-        let tl = gsap.timeline()
-        this.turn.hold.forEach(b => {
-            if (b.lastResult.type != FaceType.BLANK) {
-                const bb = physics.boneBody(b.id)
-                const startY = this.turnResultBonePosition(b).y
-                tl
-                    .delay(0.5)
-                    .add(gsap.to(bb, {y: startY + BONE_JUMP_DIST, duration: BONE_JUMP_DURATION / 2}))
-                    .call(() => { this.accumulateBoneResult(b)})
-                    .add(gsap.to(bb, {y: startY, duration: BONE_JUMP_DURATION / 2}))
-            }
-        })
-        tl.call(then)
-    }
-
-    accumulateBoneResult(b: Bone) {
-        const boneEffect = this.turn.applyBoneResult(this.round.player, b)
-        if (boneEffect.attackChange) {
-           spawnIncrease(getPlayerAttackPosition(), "+" + boneEffect.attackChange)
-        }
-        if (boneEffect.defenceChange) {
-            spawnIncrease(getPlayerDefencePosition(), "+" + boneEffect.defenceChange)
-        }
-    }
-
-    applyResults() {
-        const turnDamage = this.round.player.attack
-        if (turnDamage > 0) {
-            const inflicted = this.round.enemy.inflictDamage(turnDamage)
-            log(`Inflicted ${inflicted.hpLoss} damage`)
-            this.round.player.attack = 0
-            this.afterAttackApplied()
-        } else {
-            this.afterAttackApplied()
-        }   
-    }
-
-    afterAttackApplied() {
+    onPlayerEndTurnComplete() {
         if (this.round.enemy.isKilled()) {
             log(`${this.round.enemy.name} is killed!`)
             // todo eor callback`
@@ -224,6 +179,8 @@ export class RoundController {
     }
 
     enemyTurn() {
+        this.state = State.ENEMY_TURN
+
         const enemy = this.round.enemy
         enemy.defence = 0
         log(describeEnemyAction(enemy, enemy.nextAction))
@@ -257,3 +214,97 @@ export class RoundController {
 
 
 }
+
+class PlayerTurnEndSequencer {
+    roundController: RoundController
+    callback: () => void
+
+    constructor(roundController: RoundController, onComplete: () => void) {
+        this.roundController = roundController
+        this.callback = onComplete
+    }
+
+    get round(): Round {
+        return this.roundController.round
+    }
+
+    get turn(): Turn {
+        return this.round.turn
+    }
+
+    // all player bones should be in the hold
+    execute() {
+        this._00_moveBonesToCenter()
+    }
+
+    _00_moveBonesToCenter() {
+        this.turn.hold.forEach(b => {
+            physics.moveBone(b.id, {
+                position: this.roundController.turnResultBonePosition(b),
+                quaternion: physics.FACE_UP_QUATERNION[b.lastResult.idx]
+            })
+        })
+        this._10_jumpingBones()
+    }
+
+    _10_jumpingBones() {
+        const tl = gsap.timeline()
+        const BONE_JUMP_DIST = 0.8
+        const BONE_JUMP_DURATION = 0.5
+        this.turn.hold
+            .filter(b => b.lastResult.type != FaceType.BLANK)
+            .forEach(b => {
+                const bb = physics.boneBody(b.id)
+                const startY = this.roundController.turnResultBonePosition(b).y
+                tl
+                    .delay(0.5)
+                    .add(gsap.to(bb, { y: startY + BONE_JUMP_DIST, duration: BONE_JUMP_DURATION / 2 }))
+                    .call(() => {
+                        const boneEffect = this.turn.applyBoneResult(this.round.player, b)
+                        if (boneEffect.attackChange) {
+                            spawnIncrease(gsap.timeline(), getPlayerAttackPosition(), "+" + boneEffect.attackChange)
+                        }
+                        if (boneEffect.defenceChange) {
+                            spawnIncrease(gsap.timeline(), getPlayerDefencePosition(), "+" + boneEffect.defenceChange)
+                        }
+                    })
+                    .add(gsap.to(bb, { y: startY, duration: BONE_JUMP_DURATION / 2 }))
+            })
+        tl.delay(0.5)
+        tl.call(() => { this._20_applyPlayerAttack() })
+    }
+
+    _20_applyPlayerAttack() {
+        if (this.round.player.attack > 0) {
+            const tl = gsap.timeline()
+            // flying sword
+            tl.delay(0.5)
+            animatePlayerAttackEffect(tl, getPlayerAttackPosition(), getEnemyHpPosition())
+            tl.call(() => {
+                this._21_afterAttackAnimation()
+            })
+        } else {
+            this._30_afterPlayerAttack()
+        }
+    }
+
+    _21_afterAttackAnimation() {
+        const inflicted = this.round.enemy.inflictDamage(
+            this.round.player.attack)
+        if (inflicted.hpLoss > 0) {
+            const tl = gsap.timeline()
+            log(`Inflicted ${inflicted.hpLoss} damage`)
+            spawnDecrease(tl, getEnemyHpPosition(), "-" + inflicted.hpLoss)
+            tl.call(() => {this._30_afterPlayerAttack()})
+        } else {
+            this._30_afterPlayerAttack()
+        }
+
+    }
+
+    _30_afterPlayerAttack() {
+        this.round.player.attack = 0
+        this.callback()
+    }
+}
+

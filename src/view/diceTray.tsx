@@ -9,7 +9,7 @@ import * as physics from "../model/physics"
 const FOV = 20
 const CAMERA_HEIGHT = 23
 
-const RENDERER_WIDTH_PX = 800
+const RENDERER_WIDTH_PX = 600
 const RENDERER_HEIGHT_PX = RENDERER_WIDTH_PX / TRAY_WIDTH_UNITS * TRAY_HEIGHT_UNITS
 
 export const TRAY_WIDTH_PX = RENDERER_WIDTH_PX + 2
