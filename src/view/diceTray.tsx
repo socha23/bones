@@ -5,6 +5,7 @@ import { textureForFaceType } from "./textures";
 import { RoundedBoxGeometry } from "./roundedBoxGeometry";
 import { TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS } from "../game/trayConsts";
 import * as physics from "../model/physics"
+import { FaceType } from "../model/faceTypes";
 
 const FOV = 20
 const CAMERA_HEIGHT = 23
@@ -53,6 +54,10 @@ const plane = new THREE.Mesh(
 plane.receiveShadow = true
 scene.add(plane)
 
+const BLANK_MATERIAL = new THREE.MeshPhongMaterial({
+    transparent: true,
+    map: textureForFaceType(FaceType.BLANK),
+})
 
 class BoneMesh {
     bone: Bone
@@ -70,24 +75,23 @@ class BoneMesh {
         this.body = new THREE.Mesh(geometry, material);
         this.body.name = b.id
         this.body.castShadow = true;
-    
+
         const faceDefs = [
             // x y z rotX rotY rotZ 
-            [0, 0, b.size / 2, 0, 0, 0], // 1
-            [-b.size / 2, 0, 0, 0, Math.PI / 2, Math.PI / 2], // 2
-            [0, b.size / 2, 0, Math.PI / 2, 0, 0], // 3
+            [0, 0, b.size / 2, 0, 0, 0], // 1 ok
+            [-b.size / 2, 0, 0, 0, -Math.PI / 2, -Math.PI / 2], // 2
+            [0, b.size / 2, 0, -Math.PI / 2, 0, Math.PI], // 3
             [0, -b.size / 2, 0, Math.PI / 2, 0, Math.PI / 2], // 4
-            [b.size / 2, 0, 0, 0, -Math.PI / 2, Math.PI / 2], // 5
+            [b.size / 2, 0, 0, 0, Math.PI / 2, -Math.PI / 2], // 5
             [0, 0, -b.size / 2, 0, Math.PI, Math.PI], // 6
         ]
         faceDefs.forEach((f, idx) => {
-        const face = this._createFaceMesh(b, b.faces[idx])
-        face.position.set(f[0], f[1], f[2])
-        face.rotation.set(f[3], f[4], f[5], "XYZ")
-        this.faces.push(face)
-        this.body.add(face)
-    })
-
+            const face = this._createFaceMesh(b, b.faces[idx])
+            face.position.set(f[0], f[1], f[2])
+            face.rotation.set(f[3], f[4], f[5], "XYZ")
+            this.faces.push(face)
+            this.body.add(face)
+        })
     }
 
     _createFaceMesh(b: Bone, f: Face) {
@@ -96,9 +100,17 @@ class BoneMesh {
             map: textureForFaceType(f.type),
 //            bumpMap: textureForFaceType(f.type),
         })
+        const materials = []
+        for (let i = 0; i < 6; i++) {
+            if (i == 4) { // top face
+                materials.push(material)
+            } else {
+                materials.push(BLANK_MATERIAL)
+            }
+        }
         return new THREE.Mesh(
             new THREE.BoxGeometry(b.size * 0.75, b.size * 0.75, 0.01),
-            material
+            materials
         )
     }
     
@@ -187,8 +199,8 @@ export interface DiceTrayController {
 }
 
 var controller: DiceTrayController = {
-    onBoneClick: (b: Bone) => {},
-    isClickable: (b: Bone) => false,
+    onBoneClick: (_: Bone) => {},
+    isClickable: (_: Bone) => false,
 }
 
 export function setController(c: DiceTrayController) {
