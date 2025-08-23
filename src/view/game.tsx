@@ -17,6 +17,7 @@ interface UiState {
   enemyView: EnemyViewParams
   playerView: PlayerViewParams
   log: LogMessage[]
+  topBarText: string
 }
 
 
@@ -29,6 +30,7 @@ function getUiState(): UiState {
     enemyView: getEnemyViewParams(roundController),
     playerView: getPlayerParams(roundController),
     log: logMessages(),
+    topBarText: roundController.getTopBarText(),
   }
 }
 
@@ -45,50 +47,75 @@ export const Game = () => {
   return <div id="roundContainer" style={{
     position: "absolute",
   }}>
-    <div style={{
-      display: "flex",
-      position: "relative",
-      height: "100%",
-      width: "100%",
-    }}>
-      { /* buttons */}
-      <div style={{ display: "flex", flexDirection: "column", width: 200, }}>
-        <PlayerView {...uiState.playerView}/>        
-        <button
-          disabled={!uiState.rerollEnabled}
-          onClick={e => { gameController.currentRoundController().onReroll() }}
-        >Reroll ({uiState.rerollsLeft} left)</button>
-        <button
-          disabled={!uiState.endTurnEnabled}
-          onClick={e => { gameController.currentRoundController().onEndTurn() }}
-        >End turn</button>
-        <div style={{ height: 100 }} />
-        <button
-          onClick={e => { gameController.currentRoundController().onResetTurn() }}
-        >Reset</button>
-        <LogView log={uiState.log} />
-      </div>
 
-      { /* main container */}
-      <div style={{
-        display: "flex",
-        flexDirection: "column",
-        width: TRAY_WIDTH_PX,
-      }}>
-        <div id="container" style={{
-          width: TRAY_WIDTH_PX,
-          height: TRAY_HEIGHT_PX,
-        }}>
-          <DiceTray/>
-        </div>
-      </div>
-
-      <EnemyView {...uiState.enemyView} />
-    </div>
-
+    <GameDisplay uiState={uiState}/>
 
     <TrayOverlay />
 
   </div>
 }
 
+const GameDisplay = (p: {uiState: UiState}) => <div style={{
+      display: "flex",
+      flexDirection: "column",
+      position: "relative",
+      height: "100%",
+      width: "100%",
+      gap: 4,
+    }}>
+      <TopBar uiState={p.uiState}/>
+      <div style={{
+        display: "flex",
+        gap: 10,
+      }}>
+        { /* left column */}
+        <PlayerView {...p.uiState.playerView}/>                  
+
+        { /* main container */}
+        <div style={{display: "flex", flexDirection: "column", gap: 4}}>
+          <DiceTray/>
+          <BottomBar uiState={p.uiState}/>
+        </div>
+
+        { /* right column */}
+        <EnemyView {...p.uiState.enemyView} />
+      </div>
+    </div>
+
+const BottomBar = (p: {uiState: UiState}) =>       
+      <div style={{ 
+        width: "100%",
+        height: 40,
+        display: "flex", 
+        gap: 4,
+      }}>
+        <div>
+          <button
+            onClick={e => { gameController.currentRoundController().onResetTurn() }}
+          >Reset</button>
+        </div>
+        < div style={{
+          flexGrow: 1,
+        }}>
+          <LogView log={p.uiState.log} />
+        </div>
+        <button
+          disabled={!p.uiState.rerollEnabled}
+          onClick={e => { gameController.currentRoundController().onReroll() }}
+        >Reroll ({p.uiState.rerollsLeft} left)</button>
+        <button
+          disabled={!p.uiState.endTurnEnabled}
+          onClick={e => { gameController.currentRoundController().onEndTurn() }}
+        >End turn</button>
+      </div>
+
+const TopBar = (p: {uiState: UiState}) =>       
+      <div style={{ 
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "column",
+        fontSize: 16,
+        fontWeight: "bold"
+      }}>
+        {p.uiState.topBarText}
+      </div>

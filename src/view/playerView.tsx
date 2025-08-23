@@ -46,7 +46,6 @@ export const PlayerView = (p: PlayerViewParams) => <div style={{
     flexDirection: "column",
     alignItems: "end",
     gap: 4,
-    paddingRight: 10,
 }}>
     <PlayerName name={"Player"}/>
     <div>HP: {p.player.hp} / {p.player.maxHp}</div>

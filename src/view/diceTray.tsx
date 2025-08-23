@@ -258,7 +258,6 @@ export const DiceTray = () => {
     })
 
     return <div style={{
-        position: "absolute",
         border: "1px solid #ddd",
         width: RENDERER_WIDTH_PX + 2,
         height: RENDERER_HEIGHT_PX + 2,

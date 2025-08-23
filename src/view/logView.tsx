@@ -5,12 +5,18 @@ export interface LogViewParams {
 }
 
 export const LogView = (p: LogViewParams) => <div style={{
-    display: "flex",
-    flexDirection: "column",
-    gap: 5,
-    fontSize: 10,
+    overflow: "scroll",
+    height: "100%",
 }}>
-    {p.log.map((message, idx) => <div key={"logMsg" + idx}> 
-        <div>{message.text}</div>
-    </div>)}
+    <div style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 5,
+        fontSize: 10,
+    }}>
+        {p.log.map((message, idx) => <div key={"logMsg" + idx}> 
+            <div id={message.id}>{message.text}</div>
+        </div>)}
+    </div>
 </div>
+

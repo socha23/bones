@@ -37,6 +37,14 @@ export class RoundController {
         return this.round.turn
     }
 
+    getTopBarText() {
+        if (this.state == State.ENEMY_TURN) {
+            return "Enemy turn"
+        } else {
+            return "Player turn"
+        }
+    }
+
     onResetTurn() {
         this.turn.reset()
         this.state = State.BEFORE_FIRST_ROLL
