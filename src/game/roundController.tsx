@@ -8,7 +8,7 @@ import { gsap } from "gsap"
 import { FaceType } from '../model/faceTypes'
 import { log } from '../model/log'
 import { addEffect, Effect, spawnIncrease } from '../view/effects'
-import { getAttackAccumulationPosition, getPlayerDefencePosition } from '../view/elemPositions'
+import { getAttackAccumulationPosition, getPlayerAttackPosition, getPlayerDefencePosition } from '../view/domElements'
 import { AccumulatedAttack } from '../view/accumulatedAttact'
 import { describeEnemyAction } from '../model/enemyModel'
 
@@ -25,7 +25,6 @@ const rolledBoneStates = new Map<string, physics.BoneState>()
 export class RoundController {
     state: State = State.BEFORE_FIRST_ROLL
     round: Round
-    attackEffect?: Effect
 
     constructor(round: Round) {
         view.setController(this)
@@ -197,12 +196,7 @@ export class RoundController {
     accumulateBoneResult(b: Bone) {
         const boneEffect = this.turn.applyBoneResult(this.round.player, b)
         if (boneEffect.attackChange) {
-            if (this.attackEffect == undefined) {
-                this.attackEffect = addEffect({
-                    body: <AccumulatedAttack/>,    
-                    ...getAttackAccumulationPosition()
-                })
-            }
+           spawnIncrease(getPlayerAttackPosition(), "+" + boneEffect.attackChange)
         }
         if (boneEffect.defenceChange) {
             spawnIncrease(getPlayerDefencePosition(), "+" + boneEffect.defenceChange)
@@ -212,13 +206,10 @@ export class RoundController {
     applyResults() {
         const turnDamage = this.round.player.attack
         if (turnDamage > 0) {
-            this.attackEffect!!.animateAndRemove({left: 1000}, () => {
-                const inflicted = this.round.enemy.inflictDamage(turnDamage)
-                log(`Inflicted ${inflicted.hpLoss} damage`)
-                this.attackEffect = undefined
-                this.afterAttackApplied()
-                this.round.player.attack = 0
-            })
+            const inflicted = this.round.enemy.inflictDamage(turnDamage)
+            log(`Inflicted ${inflicted.hpLoss} damage`)
+            this.round.player.attack = 0
+            this.afterAttackApplied()
         } else {
             this.afterAttackApplied()
         }   

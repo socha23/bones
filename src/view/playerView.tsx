@@ -1,49 +1,55 @@
+import { PropsWithChildren } from "react"
 import { RoundController } from "../game/roundController"
 import { Icon } from "./accumulatedAttact"
-import { SHIELD_PATH } from "./textures"
+import { SHIELD_PATH, SWORD_PATH } from "./textures"
+import { Player } from "../model/playerModel"
+import { PLAYER_ATTACK_DOM_ID, PLAYER_DEFENCE_DOM_ID } from "./domElements"
 
 export interface PlayerViewParams {
-    hp: number
-    maxHp: number
-    defence: number
-
+    player: Player
 }
 
 export function getPlayerParams(c: RoundController): PlayerViewParams {
-  const player = c.round.player  
   return {
-        hp: player.hp,
-        maxHp: player.maxHp,
-        defence: player.defence,
+        player: c.round.player
     }
 }
 
-export const PLAYER_DEFENCE_DOM_ID = "playerDefence"
+let domIdAutoinc = 0
 
-const PlayerDefence = (p: {defence: number}) => <div id={"defence"} style={{
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-}}>
-  <Icon size={48} path={SHIELD_PATH}/>
-  <div 
-    id={PLAYER_DEFENCE_DOM_ID}
-    style={{
-    fontSize: 64
-  }}>{p.defence}</div>
-</div>
+const Stat = (p: PropsWithChildren<{iconPath: string, domId?: string, size?: number}>) => {
+  const domId = p.domId || "statValue" + domIdAutoinc++
+  const size = p.size || 32
+  return <div style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+  }}>
+    <Icon size={size * 0.75} path={p.iconPath}/>
+    <div 
+      id={domId}
+      style={{
+      fontSize: size,
+    }}>{p.children}</div>
+  </div>
+  }
 
 const PlayerName = (p: {name: string}) => <div style={{
     fontSize: 20,
     fontWeight: "bold",
 }}>{p.name}</div>
 
+
+
 export const PlayerView = (p: PlayerViewParams) => <div style={{
     display: "flex",
     flexDirection: "column",
-    gap: 10
+    alignItems: "end",
+    gap: 4,
+    paddingRight: 10,
 }}>
     <PlayerName name={"Player"}/>
-    <div>HP: {p.hp} / {p.maxHp}</div>
-    <PlayerDefence defence={p.defence}/>
+    <div>HP: {p.player.hp} / {p.player.maxHp}</div>
+    <Stat iconPath={SWORD_PATH} domId={PLAYER_ATTACK_DOM_ID}>{p.player.attack}</Stat>
+    <Stat iconPath={SHIELD_PATH} domId={PLAYER_DEFENCE_DOM_ID}>{p.player.defence}</Stat>
 </div>

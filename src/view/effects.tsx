@@ -1,7 +1,7 @@
 import { TRAY_HEIGHT_PX } from './diceTray'
 import { ReactNode, useEffect, useState } from 'react';
 import { gsap } from 'gsap'
-import { Position } from './elemPositions';
+import { Position } from './domElements';
 
 export interface EffectParams {
   id?: string
@@ -93,12 +93,18 @@ export const TrayOverlay = () => {
 
 
 export function spawnIncrease(position: Position, text: string) {
-  const DISTANCE = 100
+  const DISTANCE = 60
   const SPREAD = 1
-  const body = <div>{text}</div>
+  const body = <div style={{
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#00ff00",
+    WebkitTextStroke: "1px #888",
+    textShadow: "0 0 5px #000",
+  }}>{text}</div>
 
   const e = addEffect({ top: position.top, left: position.left, body: body })
   const toTop = e.top - DISTANCE
   const toLeft = e.left + (Math.random() * 2 - 1) * SPREAD * DISTANCE
-  e.animateAndRemove({ top: toTop, left: toLeft })
+  e.animateAndRemove({ top: toTop, left: toLeft , duration: 0.5})
 }
