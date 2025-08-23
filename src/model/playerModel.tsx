@@ -1,4 +1,5 @@
 export interface InfilctDamageResults {
+    defenceLoss: number
     hpLoss: number
 }
 
@@ -19,9 +20,13 @@ export class Player {
     }
 
     inflictDamage(damage: number): InfilctDamageResults {
-        const inflicted = Math.min(this.hp, damage)
-        this.hp -= inflicted
-        return {hpLoss: inflicted}
+        const defenceLoss = Math.min(this.defence, damage)
+        this.defence -= defenceLoss
+        damage -= defenceLoss
+        
+        const hpLoss = Math.min(this.hp, damage)
+        this.hp -= hpLoss
+        return {hpLoss: hpLoss, defenceLoss: defenceLoss}
     }
 }
 

@@ -96,7 +96,7 @@ export const TrayOverlay = () => {
 }
 
 
-export function spawnIncrease(tl: gsap.core.Timeline, position: Position, text: string) {
+export function spawnIncrease(position: Position, text: string): gsap.core.Timeline {
   const DISTANCE = 60
   const SPREAD = 1
   const body = <div style={{
@@ -110,10 +110,12 @@ export function spawnIncrease(tl: gsap.core.Timeline, position: Position, text: 
   const e = addEffect({ top: position.top, left: position.left, body: body })
   const toTop = e.top - DISTANCE
   const toLeft = e.left + (Math.random() * 2 - 1) * SPREAD * DISTANCE
+  const tl = gsap.timeline()
   e.animateAndRemove(tl, {top: toTop, left: toLeft , duration: 0.5})
+  return tl
 }
 
-export function spawnDecrease(tl: gsap.core.Timeline, position: Position, text: string) {
+export function spawnDecrease(position: Position, text: string): gsap.core.Timeline {
   const DISTANCE = 60
   const SPREAD = 1
   const body = <div style={{
@@ -127,12 +129,16 @@ export function spawnDecrease(tl: gsap.core.Timeline, position: Position, text: 
   const e = addEffect({ top: position.top, left: position.left, body: body })
   const toTop = e.top + DISTANCE
   const toLeft = e.left + (Math.random() * 2 - 1) * SPREAD * DISTANCE
+  const tl = gsap.timeline()
   e.animateAndRemove(tl, {top: toTop, left: toLeft , duration: 0.5})
+  return tl
 }
 
 
-export function animateAttackEffect(tl: gsap.core.Timeline, position: Position, target: Position) {
+export function animateAttackEffect(position: Position, target: Position): gsap.core.Timeline {
     const body = <Icon size={48} path={SWORD_PATH}/>
     const effect = addEffect({  top: position.top, left: position.left, body: body })
+    const tl = gsap.timeline()
     effect.animateAndRemove(tl, { top: target.top, left: target.left , duration: 0.5})
+    return tl
 }

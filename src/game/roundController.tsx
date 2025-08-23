@@ -264,10 +264,10 @@ class PlayerTurnEndSequencer {
                     .call(() => {
                         const boneEffect = this.turn.applyBoneResult(this.round.player, b)
                         if (boneEffect.attackChange) {
-                            spawnIncrease(gsap.timeline(), getPlayerAttackPosition(), "+" + boneEffect.attackChange)
+                            spawnIncrease(getPlayerAttackPosition(), "+" + boneEffect.attackChange)
                         }
                         if (boneEffect.defenceChange) {
-                            spawnIncrease(gsap.timeline(), getPlayerDefencePosition(), "+" + boneEffect.defenceChange)
+                            spawnIncrease(getPlayerDefencePosition(), "+" + boneEffect.defenceChange)
                         }
                     })
                     .add(gsap.to(bb, { y: startY, duration: BONE_JUMP_DURATION / 2 }))
@@ -281,7 +281,7 @@ class PlayerTurnEndSequencer {
             const tl = gsap.timeline()
             // flying sword
             tl.delay(0.5)
-            animateAttackEffect(tl, getPlayerAttackPosition(), getEnemyHpPosition())
+            tl.add(animateAttackEffect(getPlayerAttackPosition(), getEnemyHpPosition()))
             tl.call(() => {
                 this._21_afterAttackAnimation()
             })
@@ -293,15 +293,18 @@ class PlayerTurnEndSequencer {
     _21_afterAttackAnimation() {
         const inflicted = this.round.enemy.inflictDamage(
             this.round.player.attack)
-        if (inflicted.hpLoss > 0) {
-            const tl = gsap.timeline()
-            log(`Inflicted ${inflicted.hpLoss} damage`)
-            spawnDecrease(tl, getEnemyHpPosition(), "-" + inflicted.hpLoss)
-            tl.call(() => {this._30_afterPlayerAttack()})
-        } else {
+        if (inflicted.defenceLoss == 0 && inflicted.hpLoss == 0) {
             this._30_afterPlayerAttack()
         }
-
+        const tl = gsap.timeline()
+        if (inflicted.defenceLoss > 0) {
+            tl.add(spawnDecrease(getEnemyDefencePosition(), "-" + inflicted.defenceLoss), 0)
+        }
+        if (inflicted.hpLoss > 0) {
+            log(`Inflicted ${inflicted.hpLoss} damage`)
+            tl.add(spawnDecrease(getEnemyHpPosition(), "-" + inflicted.hpLoss), 0)
+        }
+        tl.call(() => {this._30_afterPlayerAttack()})
     }
 
     _30_afterPlayerAttack() {
@@ -339,7 +342,7 @@ class EnemyTurnSequencer {
             const tl = gsap.timeline()
             // flying sword
             tl.delay(0.5)
-            animateAttackEffect(tl, getEnemyAttackPosition(), getPlayerHpPosition())
+            tl.add(animateAttackEffect(getEnemyAttackPosition(), getPlayerHpPosition()))
             tl.call(() => {
                 this._21_afterAttackAnimation()
             })
@@ -353,13 +356,17 @@ class EnemyTurnSequencer {
             this.enemy.attack)
         log(describeEnemyAttack(this.enemy, inflicted))
         this.enemy.attack = 0
-        if (inflicted.hpLoss > 0) {
-            const tl = gsap.timeline()
-            spawnDecrease(tl, getPlayerHpPosition(), "-" + inflicted.hpLoss)
-            tl.call(() => {this._30_afterEnemyAttack()})
-        } else {
+        if (inflicted.defenceLoss == 0 && inflicted.hpLoss == 0) {
             this._30_afterEnemyAttack()
         }
+        const tl = gsap.timeline()
+        if (inflicted.defenceLoss > 0) {
+            tl.add(spawnDecrease(getPlayerDefencePosition(), "-" + inflicted.defenceLoss), 0)
+        }
+        if (inflicted.hpLoss > 0) {
+            tl.add(spawnDecrease(getPlayerHpPosition(), "-" + inflicted.hpLoss), 0)
+        }
+        tl.call(() => {this._30_afterEnemyAttack()})
     }
 
     _30_afterEnemyAttack() {
@@ -373,11 +380,11 @@ class EnemyTurnSequencer {
         this.enemy.applyNextAction()
         const tl = gsap.timeline()
         if (a.attack > 0) {
-            spawnIncrease(tl, getEnemyAttackPosition(), "+" + a.attack)
+            tl.add(spawnIncrease(getEnemyAttackPosition(), "+" + a.attack))
         }
         if (a.defence > 0) {
             log(describeShieldUp(this.enemy))
-            spawnIncrease(tl, getEnemyDefencePosition(), "+" + a.defence)
+            tl.add(spawnIncrease(getEnemyDefencePosition(), "+" + a.defence))
         }
         tl.call(() => {this._50_afterExecuteNextAction()})
     }

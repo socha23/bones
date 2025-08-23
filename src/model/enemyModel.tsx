@@ -16,6 +16,7 @@ export interface EnemyParams {
 
 export interface InfilctDamageResults {
     hpLoss: number
+    defenceLoss: number
 }
 
 export function describeEnemyAttack(e: Enemy, result: InfilctDamageResults): string {
@@ -64,12 +65,14 @@ export class Enemy {
     }
 
 
-    inflictDamage(hitDamage: number): InfilctDamageResults {
-        const hpLoss = Math.min(this.hp, hitDamage)
+    inflictDamage(damage: number): InfilctDamageResults {
+        const defenceLoss = Math.min(this.defence, damage)
+        this.defence -= defenceLoss
+        damage -= defenceLoss
+        
+        const hpLoss = Math.min(this.hp, damage)
         this.hp -= hpLoss
-        return {
-            hpLoss
-        }
+        return {hpLoss: hpLoss, defenceLoss: defenceLoss}
     }
 
     isKilled() {
