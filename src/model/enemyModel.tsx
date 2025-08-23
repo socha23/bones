@@ -18,20 +18,18 @@ export interface InfilctDamageResults {
     hpLoss: number
 }
 
-export function describeEnemyAction(e: Enemy, a: EnemyAction): string[] {
-    const result = []
-    
-    if (a.attack > 0) {
-        result.push(`${e.name} attacks for ${a.attack} damage`)
-    } 
-    if (a.defence > 0) {
-        result.push(`${e.name} shields up for ${a.defence} defence`)
-    }
-    if (result.length == 0) {
-        result.push(`${e.name} does nothing`)
-    } 
-    return result
+export function describeEnemyAttack(e: Enemy, result: InfilctDamageResults): string {
+    if (result.hpLoss > 0) {
+        return `${e.name} inflicts ${result.hpLoss} damage!`
+    } else {
+        return `${e.name} attacks, but it has no effect`
+    }   
 }
+
+export function describeShieldUp(e: Enemy): string {
+    return `${e.name} shields up`
+}
+
 
 export class Enemy {
     name: string 

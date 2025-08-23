@@ -131,7 +131,7 @@ export function spawnDecrease(tl: gsap.core.Timeline, position: Position, text: 
 }
 
 
-export function animatePlayerAttackEffect(tl: gsap.core.Timeline, position: Position, target: Position) {
+export function animateAttackEffect(tl: gsap.core.Timeline, position: Position, target: Position) {
     const body = <Icon size={48} path={SWORD_PATH}/>
     const effect = addEffect({  top: position.top, left: position.left, body: body })
     effect.animateAndRemove(tl, { top: target.top, left: target.left , duration: 0.5})

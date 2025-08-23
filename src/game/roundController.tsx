@@ -7,9 +7,9 @@ import { Round } from '../model/roundModel'
 import { gsap } from "gsap"
 import { FaceType } from '../model/faceTypes'
 import { log } from '../model/log'
-import { animatePlayerAttackEffect, spawnDecrease, spawnIncrease } from '../view/effects'
-import { getEnemyHpPosition, getPlayerAttackPosition, getPlayerDefencePosition } from '../view/domElements'
-import { describeEnemyAction } from '../model/enemyModel'
+import { animateAttackEffect, spawnDecrease, spawnIncrease } from '../view/effects'
+import { getEnemyAttackPosition, getEnemyDefencePosition, getEnemyHpPosition, getPlayerAttackPosition, getPlayerDefencePosition, getPlayerHpPosition } from '../view/domElements'
+import { describeEnemyAttack, describeShieldUp, Enemy } from '../model/enemyModel'
 
 export enum State {
     BEFORE_FIRST_ROLL,
@@ -49,11 +49,17 @@ export class RoundController {
         this.state = State.BEFORE_FIRST_ROLL
         physics.resetBones(this.turn.allBones)
         view.resetBones(this.turn.allBones)
+        this.round.player.defence = 0
+        this.round.player.attack = 0
         setTimeout(() => { this._roll() }, 1)
     }
 
+    interfaceLocked() {
+        return this.state == State.ROLL || this.state == State.PLAYER_TURN_END || this.state == State.ENEMY_TURN
+    }
+
     isClickable(b: Bone) {
-        if (this.state == State.ROLL) {
+        if (this.interfaceLocked()) {
             return false
         }
         return this.turn.isAvailable(b) || this.turn.isInKeep(b)
@@ -181,23 +187,12 @@ export class RoundController {
             log(`${this.round.enemy.name} is killed!`)
             // todo eor callback`
         } else {
-            this.enemyTurn()
+            this.state = State.ENEMY_TURN
+            new EnemyTurnSequencer(this, () => { this.onEnemyTurnComplete() }).execute()
         }
     }
 
-    enemyTurn() {
-        this.state = State.ENEMY_TURN
-
-        const enemy = this.round.enemy
-        enemy.defence = 0
-        log(describeEnemyAction(enemy, enemy.nextAction))
-        enemy.applyNextAction()
-        if (enemy.attack > 0) {
-//            const inflicted = this.round.player.inflictDamage(enemy.attack)
-        }
-        enemy.attack = 0
-        this.round.player.defence = 0
-        enemy.planNextAction()
+    onEnemyTurnComplete() {
         this.onResetTurn()
     }
 
@@ -286,7 +281,7 @@ class PlayerTurnEndSequencer {
             const tl = gsap.timeline()
             // flying sword
             tl.delay(0.5)
-            animatePlayerAttackEffect(tl, getPlayerAttackPosition(), getEnemyHpPosition())
+            animateAttackEffect(tl, getPlayerAttackPosition(), getEnemyHpPosition())
             tl.call(() => {
                 this._21_afterAttackAnimation()
             })
@@ -315,3 +310,80 @@ class PlayerTurnEndSequencer {
     }
 }
 
+
+class EnemyTurnSequencer {
+    roundController: RoundController
+    enemy: Enemy
+    callback: () => void
+
+    constructor(roundController: RoundController, onComplete: () => void) {
+        this.roundController = roundController
+        this.callback = onComplete
+        this.enemy = roundController.round.enemy
+    }
+
+    get round(): Round {
+        return this.roundController.round
+    }
+
+    get turn(): Turn {
+        return this.round.turn
+    }
+
+    execute() {
+        this._20_applyEnemyAttack()
+    }
+
+    _20_applyEnemyAttack() {
+        if (this.enemy.attack > 0) {
+            const tl = gsap.timeline()
+            // flying sword
+            tl.delay(0.5)
+            animateAttackEffect(tl, getEnemyAttackPosition(), getPlayerHpPosition())
+            tl.call(() => {
+                this._21_afterAttackAnimation()
+            })
+        } else {
+            this._30_afterEnemyAttack()
+        }
+    }
+
+    _21_afterAttackAnimation() {
+        const inflicted = this.round.player.inflictDamage(
+            this.enemy.attack)
+        log(describeEnemyAttack(this.enemy, inflicted))
+        this.enemy.attack = 0
+        if (inflicted.hpLoss > 0) {
+            const tl = gsap.timeline()
+            spawnDecrease(tl, getPlayerHpPosition(), "-" + inflicted.hpLoss)
+            tl.call(() => {this._30_afterEnemyAttack()})
+        } else {
+            this._30_afterEnemyAttack()
+        }
+    }
+
+    _30_afterEnemyAttack() {
+        gsap.timeline()
+            .delay(0.5)
+            .call(() => {this._40_executeNextAction})
+    }
+
+    _40_executeNextAction() {
+        const a = this.enemy.nextAction
+        this.enemy.applyNextAction()
+        const tl = gsap.timeline()
+        if (a.attack > 0) {
+            spawnIncrease(tl, getEnemyAttackPosition(), "+" + a.attack)
+        }
+        if (a.defence > 0) {
+            log(describeShieldUp(this.enemy))
+            spawnIncrease(tl, getEnemyDefencePosition(), "+" + a.defence)
+        }
+        tl.call(() => {this._50_afterExecuteNextAction})
+    }
+
+    _50_afterExecuteNextAction() {
+        this.enemy.planNextAction()
+        this.callback()
+    }
+}
