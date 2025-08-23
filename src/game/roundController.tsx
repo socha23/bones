@@ -9,8 +9,7 @@ import { FaceType } from '../model/faceTypes'
 import { log } from '../model/log'
 import { animatePlayerAttackEffect, spawnDecrease, spawnIncrease } from '../view/effects'
 import { getEnemyHpPosition, getPlayerAttackPosition, getPlayerDefencePosition } from '../view/domElements'
-import { describeEnemyAction, Enemy } from '../model/enemyModel'
-import { Player } from '../model/playerModel'
+import { describeEnemyAction } from '../model/enemyModel'
 
 export enum State {
     BEFORE_FIRST_ROLL,
@@ -194,7 +193,7 @@ export class RoundController {
         log(describeEnemyAction(enemy, enemy.nextAction))
         enemy.applyNextAction()
         if (enemy.attack > 0) {
-            const inflicted = this.round.player.inflictDamage(enemy.attack)
+//            const inflicted = this.round.player.inflictDamage(enemy.attack)
         }
         enemy.attack = 0
         this.round.player.defence = 0

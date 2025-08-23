@@ -1,11 +1,6 @@
-export enum EnemyActionType {
-    ATTACK,
-    DEFEND
-}
-
-interface EnemyAction {
-    type: EnemyActionType
-    value: number
+export interface EnemyAction {
+    attack: number
+    defence: number
 }
 
 type ActionGenerator = (e: Enemy) => EnemyAction
@@ -15,20 +10,27 @@ export interface EnemyParams {
     name: string,
     hp: number,
     actionGenerator: ActionGenerator,
+    attack: number,
+    defence: number,
 } 
 
 export interface InfilctDamageResults {
     hpLoss: number
 }
 
-export function describeEnemyAction(e: Enemy, a: EnemyAction) {
-    if (a.type == EnemyActionType.ATTACK) {
-        return `${e.name} attacks for ${a.value} damage`
-    } else if (a.type == EnemyActionType.DEFEND) {
-        return `${e.name} shields up for ${a.value} defence`
-    } else {
-        throw `Can't describe action of type ${a.type}`
+export function describeEnemyAction(e: Enemy, a: EnemyAction): string[] {
+    const result = []
+    
+    if (a.attack > 0) {
+        result.push(`${e.name} attacks for ${a.attack} damage`)
+    } 
+    if (a.defence > 0) {
+        result.push(`${e.name} shields up for ${a.defence} defence`)
     }
+    if (result.length == 0) {
+        result.push(`${e.name} does nothing`)
+    } 
+    return result
 }
 
 export class Enemy {
@@ -39,32 +41,28 @@ export class Enemy {
     actionGenerator: ActionGenerator
     nextAction: EnemyAction
     
-    attack: number = 0
-    defence: number = 0
+    attack: number
+    defence: number
 
     constructor(p: EnemyParams) {
         this.name = p.name
         this.maxHp = p.hp
         this.hp = p.hp
+        this.attack = p.attack
+        this.defence = p.defence
         this.actionGenerator = p.actionGenerator
         this.nextAction = this.actionGenerator(this)
         this.actionNo++
     }
 
     planNextAction() {
-        console.log("PLAN")
         this.nextAction = this.actionGenerator(this)
         this.actionNo++
     }
 
     applyNextAction() {
-        if (this.nextAction.type == EnemyActionType.ATTACK) {
-            this.attack += this.nextAction.value
-        } else if (this.nextAction.type == EnemyActionType.DEFEND) {
-            this.defence += this.nextAction.value
-        } else {
-            throw `Can't apply action of type ${this.nextAction.type}`
-        }
+        this.attack = this.nextAction.attack
+        this.defence = this.nextAction.defence
     }
 
 
@@ -82,19 +80,16 @@ export class Enemy {
 }
 
 export function goblin(): Enemy {
-    function goblinAction(e: Enemy) {
-        console.log("Goblin action! ", e.actionNo)
-            if (e.actionNo % 2 == 0) {
-                return {
-                    type: EnemyActionType.ATTACK,
-                    value: 3
-                }
-            } else {
-                return {
-                    type: EnemyActionType.DEFEND,
-                    value: 3
-                }
-            }
+    function goblinAction(e: Enemy): EnemyAction {
+        if (e.actionNo % 2 == 0) {
+            return {attack: 0, defence: 3}
+        } else {
+            return {attack: 3, defence: 0}
+        }
     }
-    return new Enemy({name: "Goblin", hp: 10, actionGenerator: goblinAction})
+    return new Enemy({name: "Goblin", 
+        attack: 3,
+        defence: 0,
+        hp: 10, 
+        actionGenerator: goblinAction})
 }

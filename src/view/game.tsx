@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 
-import { DiceTray, TRAY_HEIGHT_PX, TRAY_WIDTH_PX } from './diceTray'
+import { DiceTray } from './diceTray'
 import * as gameController from '../game/gameController';
-import { EnemyView, EnemyViewParams, getEnemyViewParams } from './enemyView';
+import { EnemyView } from './enemyView';
 import { LogMessage, logMessages } from '../model/log';
 import { LogView } from './logView';
 import { TrayOverlay } from './effects';
 import { getPlayerParams, PlayerView, PlayerViewParams } from './playerView';
+import { Enemy } from '../model/enemyModel';
 
 const UI_REFRESH_MS = 10
 
@@ -14,7 +15,7 @@ interface UiState {
   rerollEnabled: boolean
   rerollsLeft: number
   endTurnEnabled: boolean
-  enemyView: EnemyViewParams
+  enemy: Enemy
   playerView: PlayerViewParams
   log: LogMessage[]
   topBarText: string
@@ -27,7 +28,7 @@ function getUiState(): UiState {
     rerollEnabled: roundController.isRerollEnabled(),
     endTurnEnabled: roundController.isEndTurnEnabled(),
     rerollsLeft: roundController.turn.rerollsLeft,
-    enemyView: getEnemyViewParams(roundController),
+    enemy: roundController.round.enemy,
     playerView: getPlayerParams(roundController),
     log: logMessages(),
     topBarText: roundController.getTopBarText(),
@@ -46,10 +47,10 @@ export const Game = () => {
   })
   return <div id="roundContainer" style={{
     position: "absolute",
+    width: "100%",
   }}>
 
     <GameDisplay uiState={uiState}/>
-
     <TrayOverlay />
 
   </div>
@@ -58,6 +59,7 @@ export const Game = () => {
 const GameDisplay = (p: {uiState: UiState}) => <div style={{
       display: "flex",
       flexDirection: "column",
+      alignItems: "center",
       position: "relative",
       height: "100%",
       width: "100%",
@@ -78,7 +80,7 @@ const GameDisplay = (p: {uiState: UiState}) => <div style={{
         </div>
 
         { /* right column */}
-        <EnemyView {...p.uiState.enemyView} />
+        <EnemyView enemy={p.uiState.enemy} />
       </div>
     </div>
 
@@ -91,7 +93,7 @@ const BottomBar = (p: {uiState: UiState}) =>
       }}>
         <div>
           <button
-            onClick={e => { gameController.currentRoundController().onResetTurn() }}
+            onClick={() => { gameController.currentRoundController().onResetTurn() }}
           >Reset</button>
         </div>
         < div style={{
@@ -101,11 +103,11 @@ const BottomBar = (p: {uiState: UiState}) =>
         </div>
         <button
           disabled={!p.uiState.rerollEnabled}
-          onClick={e => { gameController.currentRoundController().onReroll() }}
+          onClick={() => { gameController.currentRoundController().onReroll() }}
         >Reroll ({p.uiState.rerollsLeft} left)</button>
         <button
           disabled={!p.uiState.endTurnEnabled}
-          onClick={e => { gameController.currentRoundController().onEndTurn() }}
+          onClick={() => { gameController.currentRoundController().onEndTurn() }}
         >End turn</button>
       </div>
 
