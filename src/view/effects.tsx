@@ -4,6 +4,7 @@ import { gsap } from 'gsap'
 import { Position } from './domElements';
 import { Icon } from './common';
 import { SWORD_PATH } from './textures';
+import { registerTickListener, unregisterTickListener } from './tick';
 
 export interface EffectParams {
   id?: string
@@ -66,17 +67,14 @@ const EffectView = (p: { effect: Effect }) => <div id={p.effect.id} style={{
 
 
 export const TrayOverlay = () => {
-
-  const REFRESH_INTERVAL_MS = 10
-
   const [effects, setEffects] = useState<Effect[]>([])
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const reg = registerTickListener(() => {
       activeEffects = activeEffects.filter(e => e.alive)
       setEffects(activeEffects)
-    }, REFRESH_INTERVAL_MS)
-    return () => clearInterval(interval)
+    })
+    return () => unregisterTickListener(reg)
   })
 
   return <div

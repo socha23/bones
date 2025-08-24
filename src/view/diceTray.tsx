@@ -6,6 +6,7 @@ import { RoundedBoxGeometry } from "./roundedBoxGeometry";
 import { TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS } from "../game/trayConsts";
 import * as physics from "../model/physics"
 import * as colors from './colors'
+import { displayBoneTooltip } from "./tooltips";
 
 const FOV = 20
 const CAMERA_HEIGHT = 23
@@ -42,9 +43,9 @@ spotLight.target.position.set(0, 0, 0)
 spotLight.distance = CAMERA_HEIGHT * 2;
 spotLight.castShadow = true;
 spotLight.position.set(
-    TRAY_WIDTH_UNITS * 0.5, 
+    TRAY_WIDTH_UNITS * 0.5,
     TRAY_HEIGHT_UNITS * 0.5,
-     CAMERA_HEIGHT * 0.75)
+    CAMERA_HEIGHT * 0.75)
 
 const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS),
@@ -63,7 +64,7 @@ class BoneMesh {
         this.bone = b
         const geometry = new RoundedBoxGeometry(b.size, b.size, b.size, 3, b.size / 10)
         const material = new THREE.MeshPhongMaterial({
-            color: b.color, 
+            color: b.color,
             shininess: 50,
         })
         this.body = new THREE.Mesh(geometry, material);
@@ -95,7 +96,7 @@ class BoneMesh {
             map: textureForFaceType(f.type),
         })
         const blankMaterial = new THREE.MeshPhongMaterial({
-            color: b.color, 
+            color: b.color,
         })
 
         const materials = []
@@ -111,7 +112,7 @@ class BoneMesh {
             materials
         )
     }
-    
+
     updateMesh() {
         const state = physics.boneState(this.bone.id)
         this.body.position.set(state.position.x, state.position.y, state.position.z)
@@ -171,8 +172,8 @@ function updateScene() {
 
 renderer.setAnimationLoop(() => {
     // TODO
-   updateScene()
-   renderer.render(scene, camera)
+    updateScene()
+    renderer.render(scene, camera)
 })
 
 interface Point2d {
@@ -180,11 +181,11 @@ interface Point2d {
     y: number,
 }
 
-let currentMousePosition: Point2d | undefined 
+let currentMousePosition: Point2d | undefined
 
 function onMouseMove(e: MouseEvent<HTMLDivElement>) {
     const boundingRect = renderer.domElement.getBoundingClientRect()
-    currentMousePosition = {x: e.clientX - boundingRect.x, y: e.clientY - boundingRect.y}
+    currentMousePosition = { x: e.clientX - boundingRect.x, y: e.clientY - boundingRect.y }
 }
 
 function onMouseOut() {
@@ -197,7 +198,7 @@ export interface DiceTrayController {
 }
 
 var controller: DiceTrayController = {
-    onBoneClick: (_: Bone) => {},
+    onBoneClick: (_: Bone) => { },
     isClickable: (_: Bone) => false,
 }
 
@@ -212,7 +213,7 @@ function onRendererClick() {
     }
 }
 
-export function mouseOverBone() : Bone | undefined {
+export function mouseOverBone(): Bone | undefined {
     if (!currentMousePosition) {
         return undefined
     }
@@ -224,7 +225,7 @@ export function mouseOverBone() : Bone | undefined {
     }
     const raycaster = new THREE.Raycaster()
     raycaster.setFromCamera(
-        new THREE.Vector2(pickPosition.x, pickPosition.y), 
+        new THREE.Vector2(pickPosition.x, pickPosition.y),
         camera)
     // we disable recursive check to not catch faces
     const boneBodies = Array.from(boneMeshes.values()).map(bm => bm.body)
@@ -243,6 +244,32 @@ export function updateResults() {
         m.updateResult()
     })
 }
+
+const BONE_HOVER_DELAY_MS = 500
+let lastHover: Bone | undefined
+let lastHoverTimeout: number | undefined
+
+function updateHoverBone() {
+    const currentHover = mouseOverBone()
+    if (currentHover == lastHover) {
+        return
+    }
+    if (lastHoverTimeout) {
+        clearInterval(lastHoverTimeout)
+    }
+
+    if (currentHover) {
+        lastHoverTimeout = setTimeout(() => {
+            console.log("Hover over bone", currentHover)
+            displayBoneTooltip(currentHover)
+        }, BONE_HOVER_DELAY_MS)
+    } else {
+        displayBoneTooltip(undefined)
+
+    }
+    lastHover = currentHover
+}
+
 
 export const DiceTray = () => {
     const ref = useRef<HTMLDivElement>(null)
@@ -263,6 +290,7 @@ export const DiceTray = () => {
                 newCursor = "pointer"
             }
             setCursor(newCursor)
+            updateHoverBone()
         }, 0.02)
     })
 

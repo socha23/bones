@@ -6,15 +6,22 @@ import { TrayOverlay } from './effects';
 import { PlayerView, } from './playerView';
 import { EndTurnButton, RerollButton, ResetButton } from './buttons';
 import { withRefreshingProps } from './common';
+import { TooltipOverlay } from './tooltips';
+import { MouseCatcher } from './mouseCatcher';
 
-export const Game = () => <div id="roundContainer"
-  style={{
-    position: "absolute",
-    width: "100%",
-  }}>
-  <GameDisplay />
-  <TrayOverlay />
-</div>
+export const Game = () => 
+  <div id="roundContainer"
+    style={{
+      position: "absolute",
+      width: "100%",
+    }}>
+      <MouseCatcher>
+        <GameDisplay />
+        <TrayOverlay />
+        <TooltipOverlay />
+
+      </MouseCatcher>
+  </div>
 
 
 const GameDisplay = () => <div style={{
