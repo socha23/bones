@@ -1,5 +1,5 @@
 import { Enemy, EnemyAction } from "../model/enemyModel"
-import { Stat } from "./common"
+import { HpBar, Stat } from "./common"
 import { ENEMY_ATTACK_DOM_ID, ENEMY_DEFENCE_DOM_ID, ENEMY_HP_DOM_ID } from "./domElements"
 import { SHIELD_PATH, SWORD_PATH } from "./textures"
 
@@ -27,7 +27,7 @@ export const EnemyView = (p: {enemy: Enemy}) => <div style={{
     gap: 4,
 }}>
     <EnemyName name={p.enemy.name}/>
-    <div id={ENEMY_HP_DOM_ID}>HP: {p.enemy.hp} / {p.enemy.maxHp}</div>
+    <HpBar id={ENEMY_HP_DOM_ID} hp={p.enemy.hp} maxHp={p.enemy.maxHp} reverse={false}/>
     <Stat iconPath={SWORD_PATH} domId={ENEMY_ATTACK_DOM_ID}>{p.enemy.attack}</Stat>
     <Stat iconPath={SHIELD_PATH} domId={ENEMY_DEFENCE_DOM_ID}>{p.enemy.defence}</Stat>
     <div style={{

@@ -26,6 +26,7 @@ export class RoundController {
 
     state: State = State.BEFORE_FIRST_ROLL
     round: Round
+    turnNo: number = 0
     enemyCreator: () => Enemy
 
     constructor(bonesCreator: () => Bone[], enemyCreator: () => Enemy) {
@@ -34,6 +35,7 @@ export class RoundController {
         this.enemyCreator = enemyCreator
         this.round = new Round(bonesCreator(), enemyCreator())
         this.onResetRound()
+
     }
 
     get turn(): Turn {
@@ -49,18 +51,21 @@ export class RoundController {
     }
 
     onResetRound() {
+        this.turnNo = 0
         this.round = new Round(this.bonesCreator(), this.enemyCreator())
         log(`Wild ${this.round.enemy.name} appears!`)
         this.onResetTurn()
     }
 
     onResetTurn() {
+        this.turnNo++
         this.turn.reset()
         this.state = State.BEFORE_FIRST_ROLL
         physics.resetBones(this.turn.allBones)
         view.resetBones(this.turn.allBones)
         this.round.player.defence = 0
         this.round.player.attack = 0
+        log(`Turn #${this.turnNo} started`)
         setTimeout(() => { this._roll() }, 1)
     }
 
