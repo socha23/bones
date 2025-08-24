@@ -20,5 +20,5 @@ export function log(text: string) {
 }
 
 export function logMessages(): LogMessage[]  {
-    return _logMessages
+    return [..._logMessages] // defensive copy
 }

@@ -31,7 +31,7 @@ world.addBody(planeBody)
 const barrierUp = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: planeMaterial});
 barrierUp.quaternion.setFromEuler(0, Math.PI, 0)
 world.addBody(barrierUp);
-barrierUp.position.set(0, 0, 5)
+barrierUp.position.set(0, 0, 10)
 
 const barrierLeft = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrierMaterial});
 barrierLeft.quaternion.setFromEuler(0, Math.PI / 2, -Math.PI / 2)
@@ -158,11 +158,11 @@ export function roll(bones: Bone[], callback: () => void) {
         rollingBones.push(bb)
         bb.unfreeze()
         // set initial roll position
-        bb.body.position.set(TRAY_WIDTH_UNITS / 2, -TRAY_HEIGHT_UNITS / 2 + HAND_HEIGHT_UNITS + idx, 2 + idx)
+        bb.body.position.set(TRAY_WIDTH_UNITS / 2, -TRAY_HEIGHT_UNITS / 2 + HAND_HEIGHT_UNITS + idx, 3)
         // apply initial force        
         bb.body.applyImpulse(
-            new CANNON.Vec3(random(-50, 0), random(-50, 0), random(3, 5)),
-            new CANNON.Vec3(0, 0, .2) // point of application of force is shifted from the center of mass 
+            new CANNON.Vec3(random(-30, -10), random(-30, 30), 0),
+            new CANNON.Vec3(0, .2, .2) // point of application of force is shifted from the center of mass 
         )
         //bb.body.velocity.set(random(-60, -40), random(-40, 40), random(-20, 0))
         //bb.body.quaternion.setFromEuler(randomAngle(), randomAngle(), randomAngle())  
