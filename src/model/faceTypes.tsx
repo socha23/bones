@@ -15,7 +15,7 @@ export enum FaceType {
     HOLD_SHIELD, 
 }
 
-enum UnimplementedFaceType {
+enum _UnimplementedFaceType {
     
     DOUBLE_ATTACK,
     HOLD_ATTACK,
@@ -29,6 +29,4 @@ enum UnimplementedFaceType {
     MANA_STRIKE,
     MANA_SHIELD,
     DOUBLE_MANA,
-
-
 }

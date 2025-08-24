@@ -44,4 +44,15 @@ const _EnemyView = (p: {enemy: Enemy}) => <div style={{
 
 export const EnemyView = withRefreshingProps(_EnemyView,
   () => ({enemy: currentRoundController().round.enemy}),
+  (p1, p2) => {
+    const e1 = p1.enemy
+    const e2 = p2.enemy
+    return e1.name == e2.name
+        && e1.maxHp == e2.maxHp
+        && e1.hp == e2.hp
+        && e1.attack == e2.attack
+        && e1.defence == e2.defence
+        && e1.nextAction.attack == e2.nextAction.attack
+        && e1.nextAction.defence == e2.nextAction.defence
+  }
 )

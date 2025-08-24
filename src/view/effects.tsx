@@ -95,7 +95,6 @@ export const TrayOverlay = () => {
   </div>
 }
 
-
 export function spawnIncrease(position: Position, text: string): gsap.core.Timeline {
   const DISTANCE = 60
   const SPREAD = 1

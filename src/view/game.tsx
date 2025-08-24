@@ -6,7 +6,6 @@ import { TrayOverlay } from './effects';
 import { PlayerView, } from './playerView';
 import { EndTurnButton, RerollButton, ResetButton } from './buttons';
 import { withRefreshingProps } from './common';
-import { registerTickListener } from './tick';
 
 export const Game = () => <div id="roundContainer"
   style={{

@@ -25,4 +25,12 @@ const _PlayerView = (p: {player: Player}) => <div style={{
 
 export const PlayerView = withRefreshingProps(_PlayerView,
   () => ({player: currentRoundController().round.player}),
+    (p1, p2) => {
+    const e1 = p1.player
+    const e2 = p2.player
+    return e1.maxHp == e2.maxHp
+        && e1.hp == e2.hp
+        && e1.attack == e2.attack
+        && e1.defence == e2.defence
+  }
 )
