@@ -56,18 +56,27 @@ export class Turn {
     applyBoneResult(p: Player, b: Bone): BoneEffect {
         const topFace = b.lastResult.type
         const result: BoneEffect = {
-            label: '',
             attackChange: 0,
             defenceChange: 0,
         }
         if (topFace == FaceType.SWORD) {
             p.attack += 1
             result.attackChange += 1
-            result.label = "+1"
+        } else if (topFace == FaceType.SWORD_2) {
+            p.attack += 2
+            result.attackChange += 2
+        } else if (topFace == FaceType.SWORD_3) {
+            p.attack += 3
+            result.attackChange += 3
         } else if (topFace == FaceType.SHIELD) {
             p.defence += 1
-            result.defenceChange++
-            result.label = "+1"
+            result.defenceChange += 1
+        } else if (topFace == FaceType.SHIELD_2) {
+            p.defence += 2
+            result.defenceChange += 2
+        } else if (topFace == FaceType.SHIELD_3) {
+            p.defence += 3
+            result.defenceChange += 3
         }
         return result
     }
@@ -83,7 +92,6 @@ function remove(bones: Bone[], b: Bone) {
 }
 
 export interface BoneEffect {
-    label: string
     attackChange: number
     defenceChange: number
 }

@@ -6,7 +6,7 @@ export interface BoneParams {
     faces: FaceType[]
     size?: number
     mass?: number
-    color?: string
+    color: string
 
 }
 
@@ -30,7 +30,7 @@ export class Bone {
 
     constructor(p: BoneParams) {
         this.size = p.size || 1
-        this.color = p.color || "#888888"
+        this.color = p.color
         this.mass = 1
 
         this.faces = p.faces.map((t, idx) => new Face(idx, t))

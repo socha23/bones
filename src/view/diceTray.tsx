@@ -55,11 +55,6 @@ const plane = new THREE.Mesh(
 plane.receiveShadow = true
 scene.add(plane)
 
-const BLANK_MATERIAL = new THREE.MeshPhongMaterial({
-    transparent: true,
-    map: textureForFaceType(FaceType.BLANK),
-})
-
 class BoneMesh {
     bone: Bone
     body: THREE.Mesh
@@ -69,9 +64,8 @@ class BoneMesh {
         this.bone = b
         const geometry = new RoundedBoxGeometry(b.size, b.size, b.size, 3, b.size / 10)
         const material = new THREE.MeshPhongMaterial({
-            color: b.color, //DICE_COLOR,
+            color: b.color, 
             shininess: 50,
-            specular: 0x172022,
         })
         this.body = new THREE.Mesh(geometry, material);
         this.body.name = b.id
@@ -98,15 +92,19 @@ class BoneMesh {
     _createFaceMesh(b: Bone, f: Face) {
         const material = new THREE.MeshPhongMaterial({
             transparent: true,
+            shininess: 50,
             map: textureForFaceType(f.type),
-//            bumpMap: textureForFaceType(f.type),
         })
+        const blankMaterial = new THREE.MeshPhongMaterial({
+            color: b.color, 
+        })
+
         const materials = []
         for (let i = 0; i < 6; i++) {
             if (i == 4) { // top face
                 materials.push(material)
             } else {
-                materials.push(BLANK_MATERIAL)
+                materials.push(blankMaterial)
             }
         }
         return new THREE.Mesh(
