@@ -2,6 +2,7 @@ import { RoundController } from './roundController';
 import { goblin } from '../model/enemyModel';
 import { log } from '../model/log';
 import * as bones from '../model/bones'
+import { registerTickListener } from '../view/tick';
 
 
 log("Game started")
@@ -20,6 +21,5 @@ export function currentRoundController() {
     return roundController
 }
 
-export function update() {
-    roundController.update()
-}
+registerTickListener(() => {roundController.update()})
+

@@ -246,7 +246,6 @@ export function updateResults() {
 
 export const DiceTray = () => {
     const ref = useRef<HTMLDivElement>(null)
-
     const [cursor, setCursor] = useState("default")
 
     const [rendererMounted, setRendererMounted] = useState(false)

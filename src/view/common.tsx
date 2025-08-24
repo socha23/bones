@@ -1,5 +1,6 @@
-import { PropsWithChildren } from "react"
+import { PropsWithChildren, useEffect, useState } from "react"
 import * as colors from './colors'
+import { registerTickListener, unregisterTickListener } from "./tick"
 
 export const Icon = (p: {size: number, path: string}) => <div style={{
     width: p.size,
@@ -72,11 +73,30 @@ export const Icon = (p: {size: number, path: string}) => <div style={{
           }}>
             <div style={commonTextStyle}>{first} / {second}</div>
           </div>
-
-
         </div>
-        
-
-
       </div> 
     }
+
+
+  export function withRefreshingProps<P extends {} >(
+    Component: React.ComponentType<P>,
+    propsProvider: () => P,
+    propsEquals: (p1: P, p2: P) => boolean = (_1, _2) => false,
+    ) {
+
+    const WrappedComponent = () => {
+        const [props, setProps] = useState<P>(propsProvider())
+
+        useEffect(() => {
+            const r = registerTickListener(() => {
+                const newProps = propsProvider()
+                if (!propsEquals(props, newProps)) {
+                    setProps(newProps)
+                }
+            })
+            return () => {unregisterTickListener(r)}
+        })        
+        return <Component {...props}/>
+    }
+    return WrappedComponent
+}

@@ -1,5 +1,6 @@
+import { currentRoundController } from "../game/gameController"
 import { Enemy, EnemyAction } from "../model/enemyModel"
-import { HpBar, Stat } from "./common"
+import { HpBar, Stat, withRefreshingProps } from "./common"
 import { ENEMY_ATTACK_DOM_ID, ENEMY_DEFENCE_DOM_ID, ENEMY_HP_DOM_ID } from "./domElements"
 import { SHIELD_PATH, SWORD_PATH } from "./textures"
 
@@ -20,7 +21,7 @@ const EnemyName = (p: {name: string}) => <div style={{
     fontWeight: "bold",
 }}>{p.name}</div>
 
-export const EnemyView = (p: {enemy: Enemy}) => <div style={{
+const _EnemyView = (p: {enemy: Enemy}) => <div style={{
     display: "flex",
     flexDirection: "column",
     alignItems: "start",
@@ -40,3 +41,7 @@ export const EnemyView = (p: {enemy: Enemy}) => <div style={{
         <EnemyActionView action={p.enemy.nextAction}/>
     </div>
 </div>
+
+export const EnemyView = withRefreshingProps(_EnemyView,
+  () => ({enemy: currentRoundController().round.enemy}),
+)
