@@ -1,4 +1,4 @@
-import { PropsWithChildren, useState } from "react"
+import { PropsWithChildren } from "react"
 import * as colors from './colors'
 
 export const Icon = (p: {size: number, path: string}) => <div style={{
@@ -28,7 +28,6 @@ export const Icon = (p: {size: number, path: string}) => <div style={{
     }
 
     export const HpBar = (p: {id: string, hp: number, maxHp: number, reverse: boolean}) => {
-      const [displayedHp, setDisplayedHp] = useState(p.hp)
       const commonTextStyle = {
         fontSize: 12,
         width: 100,

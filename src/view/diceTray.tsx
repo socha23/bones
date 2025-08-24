@@ -6,6 +6,7 @@ import { RoundedBoxGeometry } from "./roundedBoxGeometry";
 import { TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS } from "../game/trayConsts";
 import * as physics from "../model/physics"
 import { FaceType } from "../model/faceTypes";
+import * as colors from './colors'
 
 const FOV = 20
 const CAMERA_HEIGHT = 23
@@ -270,7 +271,9 @@ export const DiceTray = () => {
     })
 
     return <div style={{
-        border: "1px solid #ddd",
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderColor: colors.LIGHT_BORDERS,
         width: RENDERER_WIDTH_PX + 2,
         height: RENDERER_HEIGHT_PX + 2,
         borderRadius: 3,

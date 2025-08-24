@@ -1,4 +1,5 @@
 import { LogMessage } from "../model/log"
+import * as colors from './colors'
 
 export interface LogViewParams {
     log: LogMessage[]
@@ -7,6 +8,11 @@ export interface LogViewParams {
 export const LogView = (p: LogViewParams) => <div style={{
     overflow: "scroll",
     height: "100%",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: colors.LIGHT_BORDERS,
+    borderRadius: 3,
+    color: colors.LOG_TEXT,
 }}>
     <div style={{
         display: "flex",

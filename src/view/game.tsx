@@ -121,7 +121,8 @@ const TopBar = (p: {uiState: UiState}) =>
         display: "flex",
         flexDirection: "column",
         fontSize: 16,
-        fontWeight: "bold"
+        fontWeight: "bold",
+        padding: 8,
       }}>
         {p.uiState.topBarText}
       </div>
