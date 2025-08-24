@@ -3,6 +3,7 @@ import { FaceType } from "./faceTypes"
 var boneIdx = 0
 
 export interface BoneParams {
+    name: string
     faces: FaceType[]
     size?: number
     mass?: number
@@ -22,6 +23,7 @@ export class Face {
 
 export class Bone {
     id: string = "bone_" + boneIdx++ 
+    name: string
     color: string
     size: number
     mass: number
@@ -29,6 +31,7 @@ export class Bone {
     lastResult: Face = new Face(0)
 
     constructor(p: BoneParams) {
+        this.name = p.name
         this.size = p.size || 1
         this.color = p.color
         this.mass = 1

@@ -260,7 +260,6 @@ function updateHoverBone() {
 
     if (currentHover) {
         lastHoverTimeout = setTimeout(() => {
-            console.log("Hover over bone", currentHover)
             displayBoneTooltip(currentHover)
         }, BONE_HOVER_DELAY_MS)
     } else {
