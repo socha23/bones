@@ -5,7 +5,6 @@ import { textureForFaceType } from "./textures";
 import { RoundedBoxGeometry } from "./roundedBoxGeometry";
 import { TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS } from "../game/trayConsts";
 import * as physics from "../model/physics"
-import { FaceType } from "../model/faceTypes";
 import * as colors from './colors'
 
 const FOV = 20
@@ -108,7 +107,7 @@ class BoneMesh {
             }
         }
         return new THREE.Mesh(
-            new THREE.BoxGeometry(b.size * 0.75, b.size * 0.75, 0.01),
+            new THREE.BoxGeometry(b.size * 0.75, b.size * 0.75, 0.005),
             materials
         )
     }
@@ -172,8 +171,8 @@ function updateScene() {
 
 renderer.setAnimationLoop(() => {
     // TODO
-    updateScene()
-    renderer.render(scene, camera)
+   updateScene()
+   renderer.render(scene, camera)
 })
 
 interface Point2d {

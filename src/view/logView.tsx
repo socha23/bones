@@ -1,11 +1,7 @@
 import { LogMessage } from "../model/log"
 import * as colors from './colors'
 
-export interface LogViewParams {
-    log: LogMessage[]
-}
-
-export const LogView = (p: LogViewParams) => <div style={{
+export const LogView = (p: {log: LogMessage[]}) => <div style={{
     overflow: "scroll",
     height: "100%",
     borderWidth: 1,
