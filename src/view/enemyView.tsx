@@ -1,10 +1,9 @@
 import { currentRoundController } from "../game/gameController"
-import { Enemy, EnemyAction } from "../model/enemyModel"
 import { HpBar, Stat, withRefreshingProps } from "./common"
 import { ENEMY_ATTACK_DOM_ID, ENEMY_DEFENCE_DOM_ID, ENEMY_HP_DOM_ID } from "./domElements"
 import { SHIELD_PATH, SWORD_PATH } from "./textures"
 
-const EnemyActionView = (p: {action: EnemyAction}) => <div style={{
+const EnemyActionView = (p: {action:{ attack: number, defence: number }}) => <div style={{
     display: "flex",
     gap: 4,
 }}>
@@ -16,43 +15,59 @@ const EnemyActionView = (p: {action: EnemyAction}) => <div style={{
     }
 </div>
 
-const EnemyName = (p: {name: string}) => <div style={{
+const EnemyName = (p: { name: string }) => <div style={{
     fontSize: 20,
     fontWeight: "bold",
 }}>{p.name}</div>
 
-const _EnemyView = (p: {enemy: Enemy}) => <div style={{
+interface EnemyProps {
+    name: string,
+    hp: number,
+    maxHp: number,
+    attack: number,
+    defence: number,
+    nextAction: {
+        attack: number,
+        defence: number
+    }
+}
+
+function currentEnemyProps(): EnemyProps {
+  const e = currentRoundController().round.enemy
+  return {
+    name: e.name,
+    hp: e.hp,
+    maxHp: e.maxHp,
+    attack: e.attack,
+    defence: e.defence,
+    nextAction: {
+        attack: e.nextAction.attack,
+        defence: e.nextAction.defence,
+    }
+  }
+}
+
+const _EnemyView = (p: EnemyProps) => <div style={{
     display: "flex",
     flexDirection: "column",
     alignItems: "start",
     gap: 4,
 }}>
-    <EnemyName name={p.enemy.name}/>
-    <HpBar id={ENEMY_HP_DOM_ID} hp={p.enemy.hp} maxHp={p.enemy.maxHp} reverse={false}/>
-    <Stat iconPath={SWORD_PATH} domId={ENEMY_ATTACK_DOM_ID}>{p.enemy.attack}</Stat>
-    <Stat iconPath={SHIELD_PATH} domId={ENEMY_DEFENCE_DOM_ID}>{p.enemy.defence}</Stat>
+    <EnemyName name={p.name} />
+    <HpBar id={ENEMY_HP_DOM_ID} hp={p.hp} maxHp={p.maxHp} reverse={false} />
+    <Stat iconPath={SWORD_PATH} domId={ENEMY_ATTACK_DOM_ID}>{p.attack}</Stat>
+    <Stat iconPath={SHIELD_PATH} domId={ENEMY_DEFENCE_DOM_ID}>{p.defence}</Stat>
     <div style={{
         marginTop: 10,
         borderTop: "1px solid #ddd",
         paddingTop: 10,
 
     }}>
-        <div style={{fontSize: 14}}>Next action:</div>
-        <EnemyActionView action={p.enemy.nextAction}/>
+        <div style={{ fontSize: 14 }}>Next action:</div>
+        <EnemyActionView action={p.nextAction} />
     </div>
 </div>
 
 export const EnemyView = withRefreshingProps(_EnemyView,
-  () => ({enemy: currentRoundController().round.enemy}),
-  (p1, p2) => {
-    const e1 = p1.enemy
-    const e2 = p2.enemy
-    return e1.name == e2.name
-        && e1.maxHp == e2.maxHp
-        && e1.hp == e2.hp
-        && e1.attack == e2.attack
-        && e1.defence == e2.defence
-        && e1.nextAction.attack == e2.nextAction.attack
-        && e1.nextAction.defence == e2.nextAction.defence
-  }
+    () => { return currentEnemyProps() },
 )
