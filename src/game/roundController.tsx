@@ -2,7 +2,6 @@ import { Bone } from '../model/gameModel'
 import { Turn } from '../model/turnModel'
 import * as view from '../view/diceTray'
 import * as physics from '../model/physics'
-import { Point3d, TRAY_HEIGHT_UNITS, TRAY_WIDTH_UNITS } from './trayConsts'
 import { Round } from '../model/roundModel'
 import { gsap } from "gsap"
 import { FaceType } from '../model/faceTypes'
@@ -10,6 +9,7 @@ import { log } from '../model/log'
 import { animateAttackEffect, spawnDecrease, spawnIncrease } from '../view/effects'
 import { getEnemyAttackPosition, getEnemyDefencePosition, getEnemyHpPosition, getPlayerAttackPosition, getPlayerDefencePosition, getPlayerHpPosition } from '../view/domElements'
 import { describeEnemyAttack, describeShieldUp, Enemy } from '../model/enemyModel'
+import * as positions from './roundTrayPositions'
 
 export enum State {
     BEFORE_FIRST_ROLL,
@@ -95,67 +95,11 @@ export class RoundController {
             this.unkeepBone(b)
         }
     }
-
-    boneHandPosition(b: Bone): Point3d {
-        const BONE_GAP = 0.5
-        let x = -TRAY_WIDTH_UNITS / 2 + 1
-
-        function posWithX(x: number) {
-            return {
-                x: x, y: -TRAY_HEIGHT_UNITS / 2 + 1, z: b.size / 2
-            }
-        }
-
-        if (this.turn.hold.length > 0) {
-            for (let i = 0; i < this.turn.hold.length; i++) {
-                const bb = this.turn.hold[i]
-                x += bb.size / 2
-                if (b === bb) {
-                    return posWithX(x)
-                }
-                x += bb.size / 2
-                x += BONE_GAP
-            }
-            // gap between hold and keep
-            //x += BONE_GAP * 4
-        }
-
-        for (let i = 0; i < this.turn.keep.length; i++) {
-            const bb = this.turn.keep[i]
-            x += bb.size / 2
-            if (b === bb) {
-                return posWithX(x)
-            }
-            x += bb.size / 2
-            x += BONE_GAP
-        }
-        // bone not in hand
-        throw "Bone not in hand!"
-    }
-
-    turnResultBonePosition(b: Bone) {
-        const BONE_GAP = 0.5
-        let x = -TRAY_WIDTH_UNITS / 2 + 1
-
-        for (let i = 0; i < this.turn.hold.length; i++) {
-            const bb = this.turn.hold[i]
-            x += bb.size / 2
-            if (b === bb) {
-                return {
-                    x: x, y: 0, z: b.size / 2
-                }
-            }
-            x += bb.size / 2
-            x += BONE_GAP
-        }
-        throw "Bone not in hold!"
-    }
-
     keepBone(b: Bone) {
         rolledBoneStates.set(b.id, physics.boneState(b.id))
         this.turn.keepBone(b)
         physics.moveBone(b.id, {
-            position: this.boneHandPosition(b),
+            position: positions.boneHandPosition(b),
             // straighten bone up on keep
             quaternion: physics.FACE_UP_QUATERNION[b.lastResult.idx],
         })
@@ -170,7 +114,7 @@ export class RoundController {
 
         this.turn.keep.forEach(b => {
             physics.moveBone(b.id, {
-                position: this.boneHandPosition(b),
+                position: positions.boneHandPosition(b),
             })
         })
     }
@@ -240,12 +184,11 @@ export class RoundController {
         this.turn.moveKeepToHold()
         this.turn.hold.forEach(b => {
             physics.moveBone(b.id, {
-                position: this.boneHandPosition(b)
+                position: positions.boneHandPosition(b)
             })
         })
+
     }
-
-
 }
 
 class PlayerTurnEndSequencer {
@@ -271,9 +214,10 @@ class PlayerTurnEndSequencer {
     }
 
     _00_moveBonesToCenter() {
-        this.turn.hold.forEach(b => {
+        this.turn.moveHoldToResult()
+        this.turn.result.forEach(b => {
             physics.moveBone(b.id, {
-                position: this.roundController.turnResultBonePosition(b),
+                position: positions.turnResultBonePosition(b),
                 quaternion: physics.FACE_UP_QUATERNION[b.lastResult.idx]
             })
         })
@@ -284,11 +228,11 @@ class PlayerTurnEndSequencer {
         const tl = gsap.timeline()
         const BONE_JUMP_DIST = 0.8
         const BONE_JUMP_DURATION = 0.5
-        this.turn.hold
+        this.turn.result
             .filter(b => b.lastResult.type != FaceType.BLANK)
             .forEach(b => {
                 const bb = physics.boneBody(b.id)
-                const startY = this.roundController.turnResultBonePosition(b).y
+                const startY = positions.turnResultBonePosition(b).y
                 tl
                     .delay(0.5)
                     .add(gsap.to(bb, { y: startY + BONE_JUMP_DIST, duration: BONE_JUMP_DURATION / 2 }))

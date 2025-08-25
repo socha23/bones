@@ -7,6 +7,7 @@ export class Turn {
     availableBones: Bone[] = []
     keep: Bone[] = []
     hold: Bone[] = []
+    result: Bone[] = []
     rerollsLeft: number = 2
 
     constructor(bones: Bone[]) {
@@ -18,6 +19,7 @@ export class Turn {
         this.availableBones = [...this.allBones]
         this.keep = []
         this.hold = []
+        this.result = []
         this.rerollsLeft = 2
     }
 
@@ -46,6 +48,11 @@ export class Turn {
     moveKeepToHold() {
         this.keep.forEach(b => {this.hold.push(b)})
         this.keep = []
+    }
+
+    moveHoldToResult() {
+        this.hold.forEach(b => {this.result.push(b)})
+        this.hold = []
     }
 
     moveAvailableToHold() {

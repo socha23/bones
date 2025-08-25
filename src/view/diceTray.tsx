@@ -3,10 +3,11 @@ import * as THREE from 'three';
 import { Bone, Face } from "../model/gameModel";
 import { textureForFaceType } from "./textures";
 import { RoundedBoxGeometry } from "./roundedBoxGeometry";
-import { TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS } from "../game/trayConsts";
+import { TRAY_WIDTH_UNITS, TRAY_HEIGHT_UNITS, Point3d } from "../game/trayConsts";
 import * as physics from "../model/physics"
 import * as colors from './colors'
 import { displayBoneTooltip } from "./tooltips";
+import { Position } from "./domElements";
 
 const FOV = 20
 const CAMERA_HEIGHT = 23
@@ -35,6 +36,24 @@ scene.add(new THREE.AmbientLight(
     /*intensity=*/ 1,
 ));
 
+export function getScreenPositionOrUndefined(p: Point3d | undefined): Position | undefined {
+    if (p == undefined) {
+        return undefined
+    }
+    return getScreenPosition(p)
+}
+
+
+export function getScreenPosition(p: Point3d): Position {
+    const widthHalf = RENDERER_WIDTH_PX / 2
+    const heightHalf = RENDERER_HEIGHT_PX / 2
+    var pos = new THREE.Vector3(p.x, p.y, p.z)
+    pos.project(camera)
+    return {
+        left: ( pos.x * widthHalf ) + widthHalf + renderer.domElement.getBoundingClientRect().left + window.scrollX,
+        top: heightHalf - ( pos.y * heightHalf ) + renderer.domElement.getBoundingClientRect().top + window.scrollY,
+    }
+}
 
 const spotLight = new THREE.SpotLight(0xffffff, /*intensity=*/ 3000.0);
 scene.add(spotLight)

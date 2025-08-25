@@ -8,6 +8,7 @@ import { EndTurnButton, RerollButton, ResetButton } from './buttons';
 import { withRefreshingProps } from './common';
 import { TooltipOverlay } from './tooltips';
 import { MouseCatcher } from './mouseCatcher';
+import { RoundChromeOverlay } from './roundChrome';
 
 export const Game = () => 
   <div id="roundContainer"
@@ -18,6 +19,7 @@ export const Game = () =>
       <MouseCatcher>
         <GameDisplay />
         <TrayOverlay />
+        <RoundChromeOverlay />
         <TooltipOverlay />
 
       </MouseCatcher>
